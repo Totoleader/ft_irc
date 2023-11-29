@@ -42,6 +42,24 @@ void *handle_client(int new_fd, const char *password)
 	memset(buf, 0, 100);
 	recv(new_fd, buf, 100, 0);//lis le message et le met dans le buffer
 	check_password(buf, password, &password_is_ok, new_fd);
+	if (password_is_ok)
+	{
+		char msg1[100] = ":127.0.0.1 001 Sam :Welcome to the Internet Relay Network\n";
+		int len1 = strlen(msg1);
+		send(new_fd, msg1, len1, 0);
+
+		char msg2[100] = ":127.0.0.1 002 Sam :Your host is 127.0.0.1 running version 0.1\n";
+		int len2 = strlen(msg2);
+		send(new_fd, msg2, len2, 0);
+
+		char msg3[100] = ":127.0.0.1 003 Sam :This server was created 29-11-2023\n";
+		int len3 = strlen(msg3);
+		send(new_fd, msg3, len3, 0);
+
+		char msg4[100] = ":127.0.0.1 004 Sam :ft_irc 0.1 i i\n";
+		int len4 = strlen(msg4);
+		send(new_fd, msg4, len4, 0);
+	}
 	while (password_is_ok)
 	{
 		memset(buf, 0, 100);
