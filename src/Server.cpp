@@ -1,10 +1,11 @@
 #include "Server.hpp"
+#include "Libs.hpp"
 
-Server::Server():_sock(-1), _password("")
+Server::Server():_password("")
 {
 }
 
-Server::Server(std::string password):_sock(-1), _password(password)
+Server::Server(std::string password):_password(password)
 {
 }
 
@@ -18,6 +19,7 @@ Server::~Server()
 void Server::init()
 {
 	addrinfo hints;
+	int servSocket;
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
@@ -26,15 +28,16 @@ void Server::init()
 
 	getaddrinfo(NULL, "6667", &hints, &_servinfo);
 
-	_sock = socket(_servinfo->ai_family, _servinfo->ai_socktype, _servinfo->ai_protocol);
+	servSocket = socket(_servinfo->ai_family, _servinfo->ai_socktype, _servinfo->ai_protocol);
+	new_client(servSocket);
 
-	if (bind(_sock, _servinfo->ai_addr, _servinfo->ai_addrlen) != 0)
+	if (bind(fds[0].fd, _servinfo->ai_addr, _servinfo->ai_addrlen) != 0)
 	{
 		std::cerr << "Bind failed." << std::endl;
 		return ;
 	}
 
-	listen(_sock, 10);
+	listen(fds[0].fd, 10);//!!!10 = max connection
 }
 
 void Server::init_clients()
@@ -42,56 +45,91 @@ void Server::init_clients()
 	int new_fd;
 	struct sockaddr_storage client_info;
 	socklen_t	addr_size = sizeof(client_info);
-	
+	int poll_events;
 
 	while (1)
 	{
-		new_fd = accept(_sock, (struct sockaddr *)&client_info, &addr_size);
-		handle_client(new_fd);//launché dans un thread
+		poll_events = poll(fds.data(), fds.size(), -1);
+		
+		if (fds[0].revents & POLLIN)
+		{
+			new_fd = accept(fds[0].fd, (struct sockaddr *)&client_info, &addr_size);
+			new_client(new_fd);
+			poll_events--;
+		}
+		for (size_t i = 1; i < fds.size() && poll_events; i++)
+		{
+			if (fds[i].revents & POLLIN)
+			{
+				handle_client(i);
+				poll_events--;
+			}
+		}
+		
 	}
 }
 
-void Server::handle_client(int new_fd)
+void Server::handle_client(int revent_i)
 {
-	char buf[100];
-	int password_is_ok = 0;
+	// int password_is_ok = 0;
+	// memset(buf, 0, 100);
+	// recv(revent_fd, buf, 100, 0);//lis le message et le met dans le buffer
+	// check_password(buf, &password_is_ok, revent_fd);
 
+	char buf[100];
 	memset(buf, 0, 100);
-	recv(new_fd, buf, 100, 0);//lis le message et le met dans le buffer
-	check_password(buf, &password_is_ok, new_fd);
-	while (password_is_ok)
+	if (recv(fds[revent_i].fd, buf, 100, 0) <= 0 || !check_password(buf))
 	{
-		memset(buf, 0, 100);
-		if (recv(new_fd, buf, 100, 0) < 1)
-			break;
-		std::cout << std::endl << "client send:" << buf << std::endl;
-		send(new_fd, buf, strlen(buf), 0);//renvoie au client ce qui est dans le buffer
+		close(fds[revent_i].fd);
+		strcpy(buf, "User disconnected.");
+		fds.erase(fds.begin() + revent_i);
+	}
+
+	std::cout << std::endl << "client send: " << buf << std::endl;
+	for (size_t i = 1; i < fds.size(); i++)
+	{
+		if (i != (size_t)revent_i)
+			send(fds[i].fd, buf, strlen(buf), 0);
 	}
 }
 
-void Server::check_password(char *buf, int *password_ok, int new_fd)
+bool Server::check_password(char *buf)
 {
 	const char *password = getPassword();
-	
+
 	if (*password == '\0')
 	{
-		*password_ok = true;
+		return true;
 	}
 	else if (!strncmp(buf, "PASS", 4))
 	{
-		std::cout << std::endl << "client send:" << buf << std::endl;
 		if (!strncmp(buf + 5, password, strlen(password)) && *(buf + 5 + strlen(password) + 1) != '\r')
 		{
-			*password_ok = 1;
 			std::cout << "right password" << std::endl;
+			return true;
 		}
 		else
 		{
 			std::cout << "wrong password" << std::endl;
-			close(new_fd);
+			return false;
 		}
-		send(new_fd, buf, strlen(buf), 0);//renvoie au client ce qui est dans le buffer
 	}
+	return true;
+}
+
+void Server::new_client(int fd)
+{
+	struct pollfd newClient;
+	// char *buf[100];
+
+	fcntl(fd, F_SETFL, O_NONBLOCK);
+	newClient.events = POLL_IN;
+	newClient.fd = fd;
+	fds.push_back(newClient);
+
+	// memset(buf, 0, 100);
+	// recv(fd, buf, 100, 0);
+	// check_password(buf, )
 }
 
 
@@ -108,5 +146,5 @@ const char* Server::getPassword() const
 
 int Server::getSocket() const
 {
-	return (_sock);
+	return (fds[0].fd);
 }

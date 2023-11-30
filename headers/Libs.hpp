@@ -13,5 +13,8 @@
 #include <future>
 #include <thread>
 #include <unistd.h>
+#include <poll.h>
+#include <vector>
+#include <fcntl.h>
 
 #endif // __LIBS_H__
