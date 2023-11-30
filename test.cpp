@@ -103,7 +103,7 @@ void init_clients(int sock)
 	while (1)
 	{
 		new_fd = accept(sock, (struct sockaddr *)&client_info, &addr_size);
-
+		
 		handle_client(new_fd, password);//launché dans un thread
 	}
 }
