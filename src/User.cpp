@@ -2,8 +2,9 @@
 
 User::User(int fd)
 {
-	recieveInfo(fd);
-	recieveInfo(fd);
+	(void)fd;
+	// recieveInfo(fd);
+	// recieveInfo(fd);
 }
 
 User::~User()

@@ -1,6 +1,6 @@
 CC		:= c++
 NAME	:= ircserv
-CFLAGS	:= -g #-Wall -Wextra -Werror -g -std=c++98
+CFLAGS	:= -Wall -Wextra -Werror -g -std=c++98
 
 HEADERS	:= -I ./headers -I. -I ./src
 
