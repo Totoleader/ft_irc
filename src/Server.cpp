@@ -42,9 +42,6 @@ void Server::init()
 
 void Server::init_clients()
 {
-	int new_fd;
-	struct sockaddr_storage client_info;
-	socklen_t	addr_size = sizeof(client_info);
 	int poll_events;
 
 	while (1)
@@ -53,8 +50,7 @@ void Server::init_clients()
 		
 		if (fds[0].revents & POLLIN)
 		{
-			new_fd = accept(fds[0].fd, (struct sockaddr *)&client_info, &addr_size);
-			new_client(new_fd);
+			new_client();
 			poll_events--;
 		}
 		for (size_t i = 1; i < fds.size() && poll_events; i++)
@@ -71,11 +67,6 @@ void Server::init_clients()
 
 void Server::handle_client(int revent_i)
 {
-	// int password_is_ok = 0;
-	// memset(buf, 0, 100);
-	// recv(revent_fd, buf, 100, 0);//lis le message et le met dans le buffer
-	// check_password(buf, &password_is_ok, revent_fd);
-
 	char buf[100];
 	memset(buf, 0, 100);
 	if (recv(fds[revent_i].fd, buf, 100, 0) <= 0 || !check_password(buf))
@@ -117,19 +108,37 @@ bool Server::check_password(char *buf)
 	return true;
 }
 
+void Server::new_client()
+{
+	struct pollfd	newClient;
+	User			newUser;
+	int				new_fd;
+	
+	socklen_t	addr_size = sizeof(newUser.getSock());
+	new_fd = accept(fds[0].fd, (struct sockaddr *)newUser.getSock(), &addr_size);
+	fcntl(new_fd, F_SETFL, O_NONBLOCK);
+
+	newUser.setFd(new_fd);
+	_users.push_back(newUser);
+	
+	newClient.events = POLL_IN;
+	newClient.fd = new_fd;
+	fds.push_back(newClient);
+}
+
 void Server::new_client(int fd)
 {
-	struct pollfd newClient;
-	// char *buf[100];
-
+	struct pollfd	newClient;
+	User			newUser;
+	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
+
+	newUser.setFd(fd);
+	_users.push_back(newUser);
+	
 	newClient.events = POLL_IN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
-
-	// memset(buf, 0, 100);
-	// recv(fd, buf, 100, 0);
-	// check_password(buf, )
 }
 
 

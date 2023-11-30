@@ -10,12 +10,12 @@ private:
 	std::string				_nick;
 	std::string				_login_name;
 	std::string				_real_name;
-	bool					op;
-	int						fd;
-	struct sockaddr_storage	*sock;
+	bool					_op;
+	int						_fd;
+	struct sockaddr_storage	*_sock;
 	
 public:
-	User(int fd);
+	User();
 	~User();
 
 	bool	checkNameValidity(std::string const & name);
@@ -23,6 +23,10 @@ public:
 	void	parseNickInfo(std::string nick_msg);
 	void	parseUserInfo(std::string user_msg);
 	
+	struct sockaddr_storage	*getSock() const;
+
+	void	setFd(int fd);
+	int		getFd()const;
 };
 
 #endif

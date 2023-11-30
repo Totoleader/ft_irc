@@ -1,10 +1,7 @@
 #include "User.hpp"
 
-User::User(int fd)
+User::User()
 {
-	(void)fd;
-	// recieveInfo(fd);
-	// recieveInfo(fd);
 }
 
 User::~User()
@@ -43,6 +40,21 @@ void User::parseNickInfo(std::string nick_msg)
 void User::parseUserInfo(std::string nick_msg)
 {
 	this->_login_name = nick_msg.substr(6);
+}
+
+struct sockaddr_storage	*User::getSock() const
+{
+	return (_sock);
+}
+
+int User::getFd() const
+{
+	return (_fd);
+}
+
+void User::setFd(int fd)
+{
+	_fd = fd;
 }
 
 // bool User::checkNameValidity(std::string const & name)
