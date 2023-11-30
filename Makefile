@@ -1,11 +1,12 @@
 CC		:= c++
 NAME	:= ircserv
-CFLAGS	:= -Wall -Wextra -Werror -g -std=c++98
+CFLAGS	:= -g #-Wall -Wextra -Werror -g -std=c++98
 
 HEADERS	:= -I ./headers -I. -I ./src
 
-SRCS	:= src/main.cpp \
+SRCS	:=	src/main.cpp \
 			src/Server.cpp \
+			src/User.cpp \
 
 OBJS	:= $(patsubst src/%.cpp,bin/%.o,$(SRCS))
 
