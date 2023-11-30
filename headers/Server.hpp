@@ -6,11 +6,13 @@
 class Server
 {
 private:
-	int				_sock;
-	std::string		_password;
-	addrinfo		*_servinfo;
+	std::vector<struct pollfd>	fds;
+	std::string			_password;
+	addrinfo			*_servinfo;
+	// std::vector<User>	_users;
 
-	void check_password(char *buf, int *password_ok, int new_fd);
+	bool check_password(char *buf);
+	void new_client(int fd);
 
 public:
 	Server();
@@ -27,4 +29,4 @@ public:
 	int			getSocket()		const;
 };
 
-#endif // __SERVEUR_H__
+#endif
