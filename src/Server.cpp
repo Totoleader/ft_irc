@@ -79,11 +79,19 @@ void Server::handle_client(int client_i)
 		return ;
 	}
 
+	User *u = &_users[client_i - 1];
 	std::string parseUserInfo = buf;
+
 	if (!strncmp(buf, "NICK", 4))
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
 	if (!strncmp(buf, "USER", 4))
 		_users[client_i - 1].parseUserInfo(parseUserInfo);
+	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
+	{
+		std::cout << "im in" << std::endl;
+		u->setConnected(true);
+		connectClient(u);
+	}
 
 	std::cout << std::endl << "client send: " << buf << std::endl;
 	for (size_t i = 1; i < fds.size(); i++)
