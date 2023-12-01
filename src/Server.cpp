@@ -75,7 +75,10 @@ void Server::handle_client(int client_i)
 		strcpy(buf, "User disconnected.");
 		fds.erase(fds.begin() + client_i);
 		_users.erase(_users.begin() + client_i - 1);
+		std::cout << std::endl << "client send: " << buf << std::endl;
+		return ;
 	}
+
 	std::string parseUserInfo = buf;
 	if (!strncmp(buf, "NICK", 4))
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
