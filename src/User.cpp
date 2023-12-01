@@ -34,15 +34,40 @@ User::~User()
 // }
 
 // Will recieve NICK Sam
+// or			NICK :Sam sam -> invalide
 void User::parseNickInfo(std::string nick_msg)
 {
-	this->_nick = nick_msg.substr(6);
+	size_t trail = nick_msg.find("\r\n");
+	size_t	col = nick_msg.find(":");
+	if (col != std::string::npos)
+	{
+		std::cout << "spaces not allowed" << std::endl;
+		return 1;
+	}
+
+	size_t	space = nick_msg.find(" ");
+
+	std::string nick = nick_msg.substr(0, trail).substr(space + 1);
+	//save in instance
 }
 
 // Will recieve USER scloutie 0 * Samuel
+// or			USER :s cloutie 0 * :Samuel C -> bad
 void User::parseUserInfo(std::string nick_msg)
 {
-	this->_login_name = nick_msg.substr(6);
+	size_t trail = nick_msg.find("\r\n");
+    size_t space1Pos = nick_msg.find(' ');
+    size_t space2Pos = nick_msg.find(' ', space1Pos + 1);
+	size_t last = nick_msg.find("* :");
+	
+	if (last == std::string::npos)
+		last = nick_msg.find_last_of(' ');
+	else
+		last = last + 2;
+
+	std::string login = nick_msg.substr(space1Pos + 1, space2Pos - space1Pos - 1);
+	std::string name = nick_msg.substr(0, trail).substr(last + 1);
+	//save in instance
 }
 
 // bool User::checkNameValidity(std::string const & name)

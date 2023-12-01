@@ -123,7 +123,7 @@ void Server::new_client(int fd)
 	// char *buf[100];
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-	newClient.events = POLL_IN;
+	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
 
