@@ -73,7 +73,8 @@ void Server::handle_client(int client_i)
 	{
 		close(fds[client_i].fd);
 		strcpy(buf, "User disconnected.");
-		fds.erase(fds.begin() + revent_i);
+		fds.erase(fds.begin() + client_i);
+		_users.erase(_users.begin() + client_i - 1);
 	}
 	std::string parseUserInfo = buf;
 	if (!strncmp(buf, "NICK", 4))
@@ -111,7 +112,7 @@ bool Server::check_password(char *buf)
 			return false;
 		}
 	}
-	return true;
+	return false;
 }
 
 User *Server::getUser(int fd)

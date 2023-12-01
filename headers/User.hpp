@@ -43,7 +43,6 @@ public:
 	int		getFd()const;
 	bool	isFirstMsg() const;
 	void	msgReceived();
-	int		getFd() const;
 
 	bool	isConnected();
 	void	setConnected(bool is_connected);
