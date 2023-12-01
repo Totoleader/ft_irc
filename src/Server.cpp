@@ -165,10 +165,7 @@ void Server::connectClient(User *u)
 {
 	std::string msg;
 
-	msg = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network "
-			+ u->getNick() + "!" + u->getUser() + "@" + "127.0.0.1";
-
-	std::cout << msg << std::endl;
+	msg = ":127.0.0.1:6667 001 " + u->getNick() + " :Welcome to the Internet Relay Network\n";
 
 	send(u->getFd(), msg.c_str(), msg.length(), 0);
 }
