@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User()
+User::User():_first_msg(true)
 {
 	_connected = false;
 }
@@ -97,6 +97,17 @@ bool User::isConnected()
 void User::setConnected(bool is_connected)
 {
 	_connected = is_connected;
+}
+
+bool	User::isFirstMsg() const
+{
+	return (_first_msg);
+}
+
+void	User::msgReceived()
+{
+	if (_first_msg == true)
+		_first_msg = false;
 }
 
 // bool User::checkNameValidity(std::string const & name)
