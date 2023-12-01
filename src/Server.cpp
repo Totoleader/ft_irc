@@ -47,7 +47,7 @@ void Server::init_clients()
 	while (1)
 	{
 		poll_events = poll(fds.data(), fds.size(), -1);
-		
+	
 		if (fds[0].revents & POLLIN)
 		{
 			new_client();
@@ -126,7 +126,7 @@ void Server::new_client()
 	socklen_t	addr_size = sizeof(newUser.getSock());
 	new_fd = accept(fds[0].fd, (struct sockaddr *)newUser.getSock(), &addr_size);
 	fcntl(new_fd, F_SETFL, O_NONBLOCK);
-	std::cout << "sever fd:" << fds[0].fd << std::endl;
+
 	newUser.setFd(new_fd);
 	_users.push_back(newUser);
 	
