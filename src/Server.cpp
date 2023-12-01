@@ -73,9 +73,7 @@ void Server::handle_client(int client_i)
 	{
 		close(fds[client_i].fd);
 		strcpy(buf, "User disconnected.");
-		fds.erase(fds.begin() + client_i);
-		_users.erase(_users.begin() + client_i - 1);
-		return;
+		fds.erase(fds.begin() + revent_i);
 	}
 	std::string parseUserInfo = buf;
 	if (!strncmp(buf, "NICK", 4))
@@ -113,24 +111,37 @@ bool Server::check_password(char *buf)
 			return false;
 		}
 	}
-	std::cout << "No password entered." << std::endl;
-	return false;
+	return true;
+}
+
+User *Server::getUser(int fd)
+{
+	for (unsigned int i = 0; i < _users.size(); i++)
+	{
+		if (fd == _users[i].getFd())
+			return &_users[i];
+	}
+	return NULL;
 }
 
 void Server::new_client()
 {
 	struct pollfd	newClient;
+	struct sockaddr_storage cl;
 	User			newUser;
 	int				new_fd;
 	
-	socklen_t	addr_size = sizeof(newUser.getSock());
-	new_fd = accept(fds[0].fd, (struct sockaddr *)newUser.getSock(), &addr_size);
+	socklen_t	addr_size = sizeof cl;
+	new_fd = accept(fds[0].fd, (struct sockaddr *)&cl, &addr_size);
 	fcntl(new_fd, F_SETFL, O_NONBLOCK);
 
+	newUser.setSock(&cl);
 	newUser.setFd(new_fd);
+	newUser.setIp();
+
 	_users.push_back(newUser);
 	
-	newClient.events = POLL_IN;
+	newClient.events = POLLIN;
 	newClient.fd = new_fd;
 	fds.push_back(newClient);
 }
@@ -141,6 +152,7 @@ void Server::new_client(int fd)
 	// User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
+
 	// newUser.setFd(fd);
 	// _users.push_back(newUser);
 	newClient.events = POLLIN;
@@ -148,7 +160,17 @@ void Server::new_client(int fd)
 	fds.push_back(newClient);
 }
 
+void Server::connectClient(User *u)
+{
+	std::string msg;
 
+	msg = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network "
+			+ u->getNick() + "!" + u->getUser() + "@" + "127.0.0.1";
+
+	std::cout << msg << std::endl;
+
+	send(u->getFd(), msg.c_str(), msg.length(), 0);
+}
 
 void Server::setPassword(std::string newPassword)
 {

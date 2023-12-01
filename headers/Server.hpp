@@ -23,10 +23,12 @@ public:
 	void init_clients();
 	void handle_client(int new_fd);
 
+	void connectClient(User *u);
+
 	void new_client();
 	void new_client(int fd);
 
-
+	User	*getUser(int fd);
 
 	void 		setPassword(std::string newPassword);
 	const char	*getPassword()	const;

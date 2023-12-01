@@ -2,6 +2,7 @@
 
 User::User():_first_msg(true)
 {
+	_connected = false;
 }
 
 User::~User()
@@ -9,26 +10,14 @@ User::~User()
 
 }
 
-// bool User::recieveInfo(int fd)
-// {
-// 	char		buf[1024];
-// 	std::string	nick_msg;
-// 	std::string	user_msg;
+void User::setIp()
+{
+	struct sockaddr_in *addrin = (struct sockaddr_in*)(_sock);
+	struct in_addr addr = addrin->sin_addr;
 
-// 	memset(buf, 0, sizeof buf);
-// 	recv(fd, buf, sizeof buf, 0);
-// 	if (!strncmp(buf, "NICK", 4))
-// 	{
-// 		nick_msg.append(buf, strlen(buf));
-// 		parseNickInfo(nick_msg);
-// 	}
-// 	else if (!strncmp(buf, "USER", 4))
-// 	{
-// 		user_msg.append(buf, strlen(buf));
-// 		parseUserInfo(user_msg);
-// 	}
-// 	return true;
-// }
+	_ip = inet_ntoa(addr);
+	_port = std::to_string(addrin->sin_port);
+}
 
 // Will recieve NICK Sam
 // or			NICK :Sam sam -> invalide
@@ -45,7 +34,6 @@ void User::parseNickInfo(std::string nick_msg)
 	size_t	space = nick_msg.find(" ");
 
 	_nick = nick_msg.substr(0, trail).substr(space + 1);
-	//save in instance
 }
 
 // Will recieve USER scloutie 0 * Samuel
@@ -64,12 +52,31 @@ void User::parseUserInfo(std::string nick_msg)
 
 	_login_name = nick_msg.substr(space1Pos + 1, space2Pos - space1Pos - 1);
 	_real_name = nick_msg.substr(0, trail).substr(last + 1);
-	//save in instance
+}
+
+std::string User::getNick()
+{
+	return _nick;
+}
+
+std::string User::getUser()
+{
+	return _login_name;
+}
+
+std::string User::getName()
+{
+	return _real_name;
 }
 
 struct sockaddr_storage	*User::getSock() const
 {
 	return (_sock);
+}
+
+void User::setSock(struct sockaddr_storage *s)
+{
+	_sock = s;
 }
 
 int User::getFd() const
@@ -80,6 +87,16 @@ int User::getFd() const
 void User::setFd(int fd)
 {
 	_fd = fd;
+}
+
+bool User::isConnected()
+{
+	return _connected;
+}
+
+void User::setConnected(bool is_connected)
+{
+	_connected = is_connected;
 }
 
 bool	User::isFirstMsg() const
