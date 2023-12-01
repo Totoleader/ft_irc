@@ -132,11 +132,9 @@ void Server::new_client(int fd)
 	User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-
 	newUser.setFd(fd);
 	_users.push_back(newUser);
-	
-	newClient.events = POLL_IN;
+	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
 }

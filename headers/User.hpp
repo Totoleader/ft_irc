@@ -2,6 +2,7 @@
 # define __USER_H_
 
 # include <string>
+# include <iostream>
 # include <netdb.h>
 
 class User
