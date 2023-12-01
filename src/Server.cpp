@@ -76,7 +76,20 @@ void Server::handle_client(int revent_i)
 		fds.erase(fds.begin() + revent_i);
 	}
 
-	std::cout << std::endl << "client send: " << buf << std::endl;
+	User *u = &_users[revent_i - 1];
+
+	if (!strncmp(buf, "NICK", 4))
+		_users[revent_i - 1].parseNickInfo(buf);
+	if (!strncmp(buf, "USER", 4))
+		_users[revent_i - 1].parseUserInfo(buf);
+	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
+	{
+		std::cout << "im in" << std::endl;
+		u->setConnected(true);
+		connectClient(u);
+	}
+
+	std::cout << std::endl << "from client: " << buf << std::endl;
 	for (size_t i = 1; i < fds.size(); i++)
 	{
 		if (i != (size_t)revent_i)
@@ -108,20 +121,34 @@ bool Server::check_password(char *buf)
 	return true;
 }
 
+User *Server::getUser(int fd)
+{
+	for (unsigned int i = 0; i < _users.size(); i++)
+	{
+		if (fd == _users[i].getFd())
+			return &_users[i];
+	}
+	return NULL;
+}
+
 void Server::new_client()
 {
 	struct pollfd	newClient;
+	struct sockaddr_storage cl;
 	User			newUser;
 	int				new_fd;
 	
-	socklen_t	addr_size = sizeof(newUser.getSock());
-	new_fd = accept(fds[0].fd, (struct sockaddr *)newUser.getSock(), &addr_size);
+	socklen_t	addr_size = sizeof cl;
+	new_fd = accept(fds[0].fd, (struct sockaddr *)&cl, &addr_size);
 	fcntl(new_fd, F_SETFL, O_NONBLOCK);
 
+	newUser.setSock(&cl);
 	newUser.setFd(new_fd);
+	newUser.setIp();
+
 	_users.push_back(newUser);
 	
-	newClient.events = POLL_IN;
+	newClient.events = POLLIN;
 	newClient.fd = new_fd;
 	fds.push_back(newClient);
 }
@@ -129,17 +156,25 @@ void Server::new_client()
 void Server::new_client(int fd)
 {
 	struct pollfd	newClient;
-	User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-	newUser.setFd(fd);
-	_users.push_back(newUser);
+
 	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
 }
 
+void Server::connectClient(User *u)
+{
+	std::string msg;
 
+	msg = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network "
+			+ u->getNick() + "!" + u->getUser() + "@" + "127.0.0.1";
+
+	std::cout << msg << std::endl;
+
+	send(u->getFd(), msg.c_str(), msg.length(), 0);
+}
 
 void Server::setPassword(std::string newPassword)
 {
