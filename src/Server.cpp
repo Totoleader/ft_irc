@@ -47,7 +47,7 @@ void Server::init_clients()
 	while (1)
 	{
 		poll_events = poll(fds.data(), fds.size(), -1);
-		
+	
 		if (fds[0].revents & POLLIN)
 		{
 			new_client();
@@ -65,37 +65,30 @@ void Server::init_clients()
 	}
 }
 
-void Server::handle_client(int revent_i)
+void Server::handle_client(int client_i)
 {
 	char buf[100];
 	memset(buf, 0, 100);
-	if (recv(fds[revent_i].fd, buf, 100, 0) <= 0 || !check_password(buf))
+	if (recv(fds[client_i].fd, buf, 100, 0) <= 0 || (_users[client_i - 1].isFirstMsg() && !check_password(buf)))
 	{
-		close(fds[revent_i].fd);
+		close(fds[client_i].fd);
 		strcpy(buf, "User disconnected.");
-		fds.erase(fds.begin() + revent_i);
-		_users.erase(_users.begin() + revent_i - 1);
+		fds.erase(fds.begin() + client_i);
+		_users.erase(_users.begin() + client_i - 1);
 	}
-
-	User *u = &_users[revent_i - 1];
-
+	std::string parseUserInfo = buf;
 	if (!strncmp(buf, "NICK", 4))
-		_users[revent_i - 1].parseNickInfo(buf);
+		_users[client_i - 1].parseNickInfo(parseUserInfo);
 	if (!strncmp(buf, "USER", 4))
-		_users[revent_i - 1].parseUserInfo(buf);
-	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
-	{
-		std::cout << "im in" << std::endl;
-		u->setConnected(true);
-		connectClient(u);
-	}
+		_users[client_i - 1].parseUserInfo(parseUserInfo);
 
-	std::cout << std::endl << "from client: " << buf << std::endl;
+	std::cout << std::endl << "client send: " << buf << std::endl;
 	for (size_t i = 1; i < fds.size(); i++)
 	{
-		if (i != (size_t)revent_i)
+		if (i != (size_t)client_i)
 			send(fds[i].fd, buf, strlen(buf), 0);
 	}
+	_users[client_i - 1].msgReceived();
 }
 
 bool Server::check_password(char *buf)
@@ -119,7 +112,7 @@ bool Server::check_password(char *buf)
 			return false;
 		}
 	}
-	return true;
+	return false;
 }
 
 User *Server::getUser(int fd)
@@ -157,9 +150,12 @@ void Server::new_client()
 void Server::new_client(int fd)
 {
 	struct pollfd	newClient;
+	// User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 
+	// newUser.setFd(fd);
+	// _users.push_back(newUser);
 	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);

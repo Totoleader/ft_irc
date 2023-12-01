@@ -16,6 +16,7 @@ private:
 	std::string				_port;
 	bool					_connected;
 	int						_fd;
+	bool					_first_msg;
 	struct sockaddr_storage	*_sock;
 	
 public:
@@ -39,7 +40,9 @@ public:
 	void					setSock(struct sockaddr_storage *s);
 
 	void	setFd(int fd);
-	int		getFd() const;
+	int		getFd()const;
+	bool	isFirstMsg() const;
+	void	msgReceived();
 
 	bool	isConnected();
 	void	setConnected(bool is_connected);
