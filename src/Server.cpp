@@ -74,6 +74,7 @@ void Server::handle_client(int revent_i)
 		close(fds[revent_i].fd);
 		strcpy(buf, "User disconnected.");
 		fds.erase(fds.begin() + revent_i);
+		_users.erase(_users.begin() + revent_i - 1);
 	}
 
 	User *u = &_users[revent_i - 1];
@@ -168,10 +169,7 @@ void Server::connectClient(User *u)
 {
 	std::string msg;
 
-	msg = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network "
-			+ u->getNick() + "!" + u->getUser() + "@" + "127.0.0.1";
-
-	std::cout << msg << std::endl;
+	msg = ":127.0.0.1:6667 001 " + u->getNick() + " :Welcome to the Internet Relay Network\n";
 
 	send(u->getFd(), msg.c_str(), msg.length(), 0);
 }
