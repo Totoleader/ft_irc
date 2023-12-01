@@ -42,7 +42,7 @@ void User::parseNickInfo(std::string nick_msg)
 	if (col != std::string::npos)
 	{
 		std::cout << "spaces not allowed" << std::endl;
-		return 1;
+		return ; // send error msg to client 
 	}
 
 	size_t	space = nick_msg.find(" ");
