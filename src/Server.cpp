@@ -65,23 +65,31 @@ void Server::init_clients()
 	}
 }
 
-void Server::handle_client(int revent_i)
+void Server::handle_client(int client_i)
 {
 	char buf[100];
 	memset(buf, 0, 100);
-	if (recv(fds[revent_i].fd, buf, 100, 0) <= 0 || !check_password(buf))
+	if (recv(fds[client_i].fd, buf, 100, 0) <= 0 || (_users[client_i - 1].isFirstMsg() && !check_password(buf)))
 	{
-		close(fds[revent_i].fd);
+		close(fds[client_i].fd);
 		strcpy(buf, "User disconnected.");
-		fds.erase(fds.begin() + revent_i);
+		fds.erase(fds.begin() + client_i);
+		_users.erase(_users.begin() + client_i - 1);
+		return;
 	}
+	std::string parseUserInfo = buf;
+	if (!strncmp(buf, "NICK", 4))
+		_users[client_i - 1].parseNickInfo(parseUserInfo);
+	if (!strncmp(buf, "USER", 4))
+		_users[client_i - 1].parseUserInfo(parseUserInfo);
 
 	std::cout << std::endl << "client send: " << buf << std::endl;
 	for (size_t i = 1; i < fds.size(); i++)
 	{
-		if (i != (size_t)revent_i)
+		if (i != (size_t)client_i)
 			send(fds[i].fd, buf, strlen(buf), 0);
 	}
+	_users[client_i - 1].msgReceived();
 }
 
 bool Server::check_password(char *buf)
@@ -105,7 +113,8 @@ bool Server::check_password(char *buf)
 			return false;
 		}
 	}
-	return true;
+	std::cout << "No password entered." << std::endl;
+	return false;
 }
 
 void Server::new_client()
@@ -117,7 +126,7 @@ void Server::new_client()
 	socklen_t	addr_size = sizeof(newUser.getSock());
 	new_fd = accept(fds[0].fd, (struct sockaddr *)newUser.getSock(), &addr_size);
 	fcntl(new_fd, F_SETFL, O_NONBLOCK);
-
+	std::cout << "sever fd:" << fds[0].fd << std::endl;
 	newUser.setFd(new_fd);
 	_users.push_back(newUser);
 	
@@ -129,11 +138,11 @@ void Server::new_client()
 void Server::new_client(int fd)
 {
 	struct pollfd	newClient;
-	User			newUser;
+	// User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-	newUser.setFd(fd);
-	_users.push_back(newUser);
+	// newUser.setFd(fd);
+	// _users.push_back(newUser);
 	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);

@@ -13,6 +13,7 @@ private:
 	std::string				_real_name;
 	bool					_op;
 	int						_fd;
+	bool					_first_msg;
 	struct sockaddr_storage	*_sock;
 	
 public:
@@ -28,6 +29,8 @@ public:
 
 	void	setFd(int fd);
 	int		getFd()const;
+	bool	isFirstMsg() const;
+	void	msgReceived();
 };
 
 #endif

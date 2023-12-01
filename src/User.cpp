@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User()
+User::User():_first_msg(true)
 {
 }
 
@@ -44,7 +44,7 @@ void User::parseNickInfo(std::string nick_msg)
 
 	size_t	space = nick_msg.find(" ");
 
-	std::string nick = nick_msg.substr(0, trail).substr(space + 1);
+	_nick = nick_msg.substr(0, trail).substr(space + 1);
 	//save in instance
 }
 
@@ -62,8 +62,8 @@ void User::parseUserInfo(std::string nick_msg)
 	else
 		last = last + 2;
 
-	std::string login = nick_msg.substr(space1Pos + 1, space2Pos - space1Pos - 1);
-	std::string name = nick_msg.substr(0, trail).substr(last + 1);
+	_login_name = nick_msg.substr(space1Pos + 1, space2Pos - space1Pos - 1);
+	_real_name = nick_msg.substr(0, trail).substr(last + 1);
 	//save in instance
 }
 
@@ -80,6 +80,17 @@ int User::getFd() const
 void User::setFd(int fd)
 {
 	_fd = fd;
+}
+
+bool	User::isFirstMsg() const
+{
+	return (_first_msg);
+}
+
+void	User::msgReceived()
+{
+	if (_first_msg == true)
+		_first_msg = false;
 }
 
 // bool User::checkNameValidity(std::string const & name)

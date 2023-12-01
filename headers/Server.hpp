@@ -31,6 +31,7 @@ public:
 	void 		setPassword(std::string newPassword);
 	const char	*getPassword()	const;
 	int			getSocket()		const;
+
 };
 
 #endif
