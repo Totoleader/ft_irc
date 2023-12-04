@@ -64,7 +64,6 @@ void Server::init_clients()
 	}
 }
 
-
 void Server::handle_client(int client_i)
 {
 	char buf[100];
@@ -75,7 +74,7 @@ void Server::handle_client(int client_i)
 		return ;
 	}
 	if (!strncmp(buf, "JOIN", 4))
-		joinChannel(u, buf);
+		joinChannel(&_users[client_i - 1], buf);
 
 	std::cout << std::endl << "client send: " << buf << std::endl;
 
