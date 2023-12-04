@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
+#include <map>
 #include <fcntl.h>
 
 #endif // __LIBS_H__
