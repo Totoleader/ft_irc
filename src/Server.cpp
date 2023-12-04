@@ -90,6 +90,8 @@ void Server::handle_client(int client_i)
 		u->setConnected(true);
 		connectClient(u);
 	}
+	if (!strncmp(buf, "JOIN", 4))
+		joinChannel(u, buf);
 
 	std::cout << std::endl << "client send: " << buf << std::endl;
 	for (size_t i = 1; i < fds.size(); i++)
@@ -98,6 +100,29 @@ void Server::handle_client(int client_i)
 			send(fds[i].fd, buf, strlen(buf), 0);
 	}
 	_users[client_i - 1].msgReceived();
+}
+
+void Server::joinChannel(User *u, std::string msg)
+{
+	size_t		hash = msg.find('#');
+	size_t		trail = msg.find("\r\n");
+	std::string	chan = msg.substr(0, trail).substr(hash);
+
+	std::string join = ":" + u->getNick() + "!" + u->getUser() + "@127.0.0.1:6667 JOIN " + chan + "\n";
+	std::string mode = ":127.0.0.1:6667 MODE " + u->getNick() + " " + chan + " +nt\n";
+	//std::string topic = ":127.0.0.1 332 " + u->getNick() + " " + chan + " :Channel cool\n";
+	std::string listbegin = ":127.0.0.1:6667 353 " + u->getNick() + " = " + chan + " :@" + u->getNick() + "\n";
+	//std::string op = ":127.0.0.1 381 " + u->getNick() + " " + chan + " :You are OP\n";
+	std::string listend = ":127.0.0.1:6667 366 " + u->getNick() + " " + chan + " :End of /NAMES list.\n";
+
+	std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
+
+	send(u->getFd(), join.c_str(), join.length(), 0);
+	//send(u->getFd(), topic.c_str(), topic.length(), 0);
+	send(u->getFd(), mode.c_str(), mode.length(), 0);
+	send(u->getFd(), listbegin.c_str(), listbegin.length(), 0);
+	//send(u->getFd(), op.c_str(), op.length(), 0);
+	send(u->getFd(), listend.c_str(), listend.length(), 0);
 }
 
 bool Server::check_password(char *buf)
