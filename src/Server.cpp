@@ -61,9 +61,9 @@ void Server::init_clients()
 				poll_events--;
 			}
 		}
-		
 	}
 }
+
 
 void Server::handle_client(int client_i)
 {
@@ -71,29 +71,13 @@ void Server::handle_client(int client_i)
 	memset(buf, 0, 100);
 	if (recv(fds[client_i].fd, buf, 100, 0) <= 0 || (_users[client_i - 1].isFirstMsg() && !check_password(buf)))
 	{
-		close(fds[client_i].fd);
-		strcpy(buf, "User disconnected.");
-		fds.erase(fds.begin() + client_i);
-		_users.erase(_users.begin() + client_i - 1);
-		std::cout << std::endl << "client send: " << buf << std::endl;
+		disconnect_user(client_i);
 		return ;
 	}
-
-	User *u = &_users[client_i - 1];
-	std::string parseUserInfo = buf;
-
-	if (!strncmp(buf, "NICK", 4))
-		_users[client_i - 1].parseNickInfo(parseUserInfo);
-	if (!strncmp(buf, "USER", 4))
-		_users[client_i - 1].parseUserInfo(parseUserInfo);
-	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
-	{
-		std::cout << "im in" << std::endl;
-		u->setConnected(true);
-		connectClient(u);
-	}
-
 	std::cout << std::endl << "client send: " << buf << std::endl;
+
+
+	parse_user_info(client_i, buf);
 	for (size_t i = 1; i < fds.size(); i++)
 	{
 		if (i != (size_t)client_i)
@@ -112,6 +96,8 @@ bool Server::check_password(char *buf)
 	}
 	else if (!strncmp(buf, "PASS", 4))
 	{
+		std::cout << "password received:" << buf << std::endl;
+	
 		if (!strncmp(buf + 5, password, strlen(password)) && *(buf + 5 + strlen(password) + 1) != '\r')
 		{
 			std::cout << "right password" << std::endl;
@@ -124,6 +110,34 @@ bool Server::check_password(char *buf)
 		}
 	}
 	return false;
+}
+
+void Server::disconnect_user(int client_i)
+{
+	char buf[100];
+
+	close(fds[client_i].fd);
+	strcpy(buf, "User disconnected.");
+	fds.erase(fds.begin() + client_i);
+	_users.erase(_users.begin() + client_i - 1);
+	std::cout << std::endl << "client send: " << buf << std::endl;
+}
+
+void Server::parse_user_info(int client_i, char *buf)
+{
+	std::string parseUserInfo = buf;
+	if (!strncmp(buf, "NICK", 4))
+		_users[client_i - 1].parseNickInfo(parseUserInfo);
+	if (!strncmp(buf, "USER", 4))
+		_users[client_i - 1].parseUserInfo(parseUserInfo);
+	
+	User *u = &_users[client_i - 1];
+	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
+	{
+		std::cout << "im in" << std::endl;
+		u->setConnected(true);
+		connectClient(u);
+	}
 }
 
 User *Server::getUser(int fd)

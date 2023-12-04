@@ -7,6 +7,7 @@ HEADERS	:= -I ./headers -I. -I ./src
 SRCS	:=	src/main.cpp \
 			src/Server.cpp \
 			src/User.cpp \
+			src/Channel.cpp \
 
 OBJS	:= $(patsubst src/%.cpp,bin/%.o,$(SRCS))
 
