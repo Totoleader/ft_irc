@@ -54,6 +54,16 @@ void User::parseUserInfo(std::string nick_msg)
 	_real_name = nick_msg.substr(0, trail).substr(last + 1);
 }
 
+std::string User::getIp()
+{
+	return _ip;
+}
+
+std::string User::getPort()
+{
+	return _port;
+}
+
 std::string User::getNick()
 {
 	return _nick;
