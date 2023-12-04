@@ -172,11 +172,15 @@ void Server::new_client(int fd)
 
 void Server::connectClient(User *u)
 {
-	std::string msg;
+	std::string msg001 = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network\n";
+	std::string msg002 = ":127.0.0.1 002 " + u->getNick() + " :Your host is ft_irc, running version 0.1\n";
+	std::string msg003 = ":127.0.0.1 003 " + u->getNick() + " :This server was created NOW\n";
+	std::string msg004 = ":127.0.0.1 004 " + u->getNick() + " :ft_irc 0.1 * +i+t+k+o+l\n";
 
-	msg = ":127.0.0.1:6667 001 " + u->getNick() + " :Welcome to the Internet Relay Network\n";
-
-	send(u->getFd(), msg.c_str(), msg.length(), 0);
+	send(u->getFd(), msg001.c_str(), msg001.length(), 0);
+	send(u->getFd(), msg002.c_str(), msg002.length(), 0);
+	send(u->getFd(), msg003.c_str(), msg003.length(), 0);
+	send(u->getFd(), msg004.c_str(), msg004.length(), 0);
 }
 
 void Server::setPassword(std::string newPassword)

@@ -5,6 +5,7 @@
 # include <iostream>
 # include <netdb.h>
 # include <arpa/inet.h>
+# include <vector>
 
 class User
 {
@@ -35,6 +36,10 @@ public:
 	std::string	getUser();
 
 	std::string	getName();
+
+	std::string getIp();
+
+	std::string getPort();
 
 	struct sockaddr_storage	*getSock() const;
 	void					setSock(struct sockaddr_storage *s);
