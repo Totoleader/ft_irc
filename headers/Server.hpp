@@ -38,6 +38,10 @@ public:
 	void disconnect_user(int client_i);
 	void parse_user_info(int client_i, char *buf);
 
+	//utils
+	void createChannelMsg(User &u, std::string chan) const;
+	void sendToChannel(std::string chan, std::string message);
+
 	User	*getUser(int fd);
 
 	void 		setPassword(std::string newPassword);

@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scloutie <scloutie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
 /*   Updated: 2023/12/05 14:25:25 by scloutie         ###   ########.fr       */
@@ -44,6 +44,8 @@ public:
 
 	void addUser(User &user);
 	void addModerator(std::string modName);
+	std::map <std::string, User> &getUsers();
+	std::vector<std::string> &getmoderatorName();
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);
