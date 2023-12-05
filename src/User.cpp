@@ -79,6 +79,11 @@ std::string User::getName()
 	return _real_name;
 }
 
+std::string User::getID()
+{
+	return ":" + getNick() + "!" + getUser() + "@127.0.0.1:" + getPort();
+}
+
 struct sockaddr_storage	*User::getSock() const
 {
 	return (_sock);
