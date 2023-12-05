@@ -29,6 +29,7 @@ public:
 	void handle_client(int new_fd);
 
 	void leaveChannel(User &u, std::string msg);
+	void joinExistingChannel(User &u, Channel &chan);
 	void joinChannel(User &u, std::string msg);
 	void connectClient(User *u);
 

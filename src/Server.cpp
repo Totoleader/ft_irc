@@ -96,13 +96,6 @@ void Server::leaveChannel(User &u, std::string msg)
 
 	std::string reply = u.getID() + " " + msg.substr(0, trail) + "\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
-
-	// std::map<std::string, Channel>::iterator it = _channels.find(chan);
-	if (_channels[chan].getUsers().size() <= 0)
-	{
-		_channels.erase(chan);
-	}
-	
 }
 
 void Server::joinChannel(User &u, std::string msg)
@@ -123,6 +116,7 @@ void Server::joinChannel(User &u, std::string msg)
 	else//doit check si invite mode only et si user est whitelisted
 	{
 		_channels[chan].addUser(u);
+		joinExistingChannel(u, _channels[chan]);
 	}
 }
 

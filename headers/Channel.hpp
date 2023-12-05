@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/05 12:31:28 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/05 12:54:48 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ public:
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);
+	std::string	getName();
+	std::map<std::string, User> & getUsers();
 };
 
 
