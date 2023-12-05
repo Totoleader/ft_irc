@@ -80,11 +80,11 @@ void Server::handle_client(int client_i)
 
 
 	parse_user_info(client_i, buf);
-	for (size_t i = 1; i < fds.size(); i++)
-	{
-		if (i != (size_t)client_i)
-			send(fds[i].fd, buf, strlen(buf), 0);
-	}
+	// for (size_t i = 1; i < fds.size(); i++)
+	// {
+	// 	if (i != (size_t)client_i)
+	// 		send(fds[i].fd, buf, strlen(buf), 0);
+	// }
 	_users[client_i - 1].msgReceived();
 }
 
@@ -106,6 +106,8 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 	{
 		if (&it->second != &u)
 		{
+			if (chan.isOperator(it->second))
+				listBegin += "@";
 			listBegin += it->second.getNick() + " ";
 			send(it->second.getFd(), join.c_str(), join.length(), 0);
 		}
@@ -141,6 +143,7 @@ void Server::joinChannel(User &u, std::string msg)
 
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
+		_channels[chan].addModerator(u.getNick());
 	}
 	else//doit check si invite mode only et si user est whitelisted
 	{

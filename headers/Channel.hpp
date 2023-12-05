@@ -6,7 +6,7 @@
 /*   By: scloutie <scloutie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/05 12:08:39 by scloutie         ###   ########.fr       */
+/*   Updated: 2023/12/05 14:25:25 by scloutie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ public:
 	//setUserLimit(...);
 	std::string	getName();
 	std::map<std::string, User> & getUsers();
+	bool isOperator(User &u);
 };
 
 
