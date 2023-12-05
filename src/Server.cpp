@@ -96,34 +96,56 @@ void Server::leaveChannel(User &u, std::string msg)
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
 }
 
+void Server::joinExistingChannel(User &u, Channel &chan)
+{
+	std::string	join = u.getID() + " JOIN " + chan.getName() + "\n";
+	std::string listBegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan.getName() + " :";
+	std::string listEnd = ":127.0.0.1 366 " + u.getNick() + " " + chan.getName() + " :End of /NAMES list.\n";
+	send(u.getFd(), join.c_str(), join.length(), 0);
+	for (std::map<std::string, User>::iterator it = chan.getUsers().begin(); it != chan.getUsers().end(); it++)
+	{
+		if (&it->second != &u)
+		{
+			listBegin += it->second.getNick() + " ";
+			send(it->second.getFd(), join.c_str(), join.length(), 0);
+		}
+	}
+	listBegin += "\n";
+	std::cout << listBegin << std::endl;
+	send(u.getFd(), listBegin.c_str(), listBegin.length(), 0);
+	send(u.getFd(), listEnd.c_str(), listEnd.length(), 0);
+}
+
 void Server::joinChannel(User &u, std::string msg)
 {
 	size_t		hash = msg.find('#');
 	size_t		trail = msg.find("\r\n");
 	std::string	chan = msg.substr(0, trail).substr(hash);
-	std::string join = u.getID() + " JOIN " + chan + "\n";
-	std::string mode = ":127.0.0.1 MODE " + u.getNick() + " " + chan + " +nt\n";
-	std::string listbegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
-	std::string listend = ":127.0.0.1 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
-
-	std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
-
-	send(u.getFd(), join.c_str(), join.length(), 0);
-	send(u.getFd(), mode.c_str(), mode.length(), 0);
-	send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
-	send(u.getFd(), listend.c_str(), listend.length(), 0);
+	
 
 	//Si le channel n'existe pas encore
 	std::map<std::string, Channel>::iterator it = _channels.find(chan);
 	if (it == _channels.end())
 	{
-		
+		std::string join = u.getID() + " JOIN " + chan + "\n";
+		std::string mode = ":127.0.0.1 MODE " + u.getNick() + " " + chan + " +nt\n";
+		std::string listbegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
+		std::string listend = ":127.0.0.1 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
+
+		std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
+
+		send(u.getFd(), join.c_str(), join.length(), 0);
+		send(u.getFd(), mode.c_str(), mode.length(), 0);
+		send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
+		send(u.getFd(), listend.c_str(), listend.length(), 0);
+
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
 	}
 	else//doit check si invite mode only et si user est whitelisted
 	{
 		_channels[chan].addUser(u);
+		joinExistingChannel(u, _channels[chan]);
 	}
 }
 
