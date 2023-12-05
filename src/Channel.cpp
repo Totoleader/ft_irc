@@ -7,7 +7,7 @@ Channel::Channel()
 Channel::Channel(std::string name, User &u): _name(name)
 {
 	addUser(u);
-	addModerator(u.getName());
+	addModerator(u.getNick());
 }
 
 Channel::~Channel()

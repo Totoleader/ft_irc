@@ -32,7 +32,7 @@ void Server::init()
 	if (bind(fds[0].fd, _servinfo->ai_addr, _servinfo->ai_addrlen) != 0)
 	{
 		std::cerr << "Bind failed." << std::endl;
-		return ;
+		exit (1);
 	}
 
 	listen(fds[0].fd, 10);//!!!10 = max connection
@@ -164,7 +164,6 @@ void Server::joinChannel(User &u, std::string msg)
 		createChannelMsg(u, chan);
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
-		_channels[chan].addModerator(u.getNick());
 	}
 	else//doit check si invite mode only et si user est whitelisted
 	{
