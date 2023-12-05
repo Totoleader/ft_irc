@@ -37,9 +37,11 @@ public:
 
 	std::string	getName();
 
-	std::string getIp();
+	std::string	getIp();
 
-	std::string getPort();
+	std::string	getPort();
+
+	std::string	getID();
 
 	struct sockaddr_storage	*getSock() const;
 	void					setSock(struct sockaddr_storage *s);

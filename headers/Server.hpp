@@ -28,7 +28,8 @@ public:
 	void init_clients();
 	void handle_client(int new_fd);
 
-	void joinChannel(User *u, std::string msg);
+	void leaveChannel(User &u, std::string msg);
+	void joinChannel(User &u, std::string msg);
 	void connectClient(User *u);
 
 	void new_client();
