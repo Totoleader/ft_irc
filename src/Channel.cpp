@@ -1,4 +1,4 @@
-#include "./headers/Channel.hpp"
+#include "Channel.hpp"
 
 Channel::Channel()
 {
@@ -16,7 +16,7 @@ Channel::~Channel()
 
 void Channel::addUser(User &user)
 {
-	_channelUsers[user.getName()] = user;
+	_channelUsers[user.getNick()] = user;
 }
 
 void Channel::addModerator(std::string modName)
@@ -32,4 +32,14 @@ std::string Channel::getName()
 std::map <std::string, User> & Channel::getUsers()
 {
 	return _channelUsers;
+}
+
+bool Channel::isOperator(User &u)
+{
+	for (std::vector<std::string>::iterator it = _moderatorName.begin(); it != _moderatorName.end(); it++)
+	{
+		if (u.getNick() == *it)
+			return true;
+	}
+	return false;
 }
