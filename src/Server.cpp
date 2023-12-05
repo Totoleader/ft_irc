@@ -14,8 +14,6 @@ Server::~Server()
 	freeaddrinfo(_servinfo);
 }
 
-
-
 void Server::init()
 {
 	addrinfo hints;
@@ -103,7 +101,6 @@ void Server::joinChannel(User &u, std::string msg)
 	size_t		hash = msg.find('#');
 	size_t		trail = msg.find("\r\n");
 	std::string	chan = msg.substr(0, trail).substr(hash);
-
 	std::string join = u.getID() + " JOIN " + chan + "\n";
 	std::string mode = ":127.0.0.1 MODE " + u.getNick() + " " + chan + " +nt\n";
 	std::string listbegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
@@ -115,6 +112,19 @@ void Server::joinChannel(User &u, std::string msg)
 	send(u.getFd(), mode.c_str(), mode.length(), 0);
 	send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
 	send(u.getFd(), listend.c_str(), listend.length(), 0);
+
+	//Si le channel n'existe pas encore
+	std::map<std::string, Channel>::iterator it = _channels.find(chan);
+	if (it == _channels.end())
+	{
+		
+		Channel newChannel(chan, u);
+		_channels[chan] = newChannel;
+	}
+	else//doit check si invite mode only et si user est whitelisted
+	{
+		_channels[chan].addUser(u);
+	}
 }
 
 bool Server::check_password(char *buf)

@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/04 15:22:40 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/04 16:26:01 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ private:
 	std::string 					_name;
 	std::string 					_topic;
 
-	std::vector<std::string> 		_moderator_name;
+	std::vector<std::string> 		_moderatorName;
 
 	std::string 					_password;
 	// int								_userLimit;
@@ -33,14 +33,17 @@ private:
 
 	//mode
 	// bool							_isInviteOnly;
-	std::vector<std::string>		_inviteList;			
+	std::vector<std::string>		_inviteList;
 
 	// bool							_restrictTopic;
 
 public:
 	Channel();
+	Channel(std::string name, User &u);
 	~Channel();
 
+	void addUser(User &user);
+	void addModerator(std::string modName);
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);
