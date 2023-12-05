@@ -93,27 +93,27 @@ void Server::joinChannel(User &u, std::string msg)
 	size_t		trail = msg.find("\r\n");
 	std::string	chan = msg.substr(0, trail).substr(hash);
 
-	std::string join = ":" + u.getNick() + "!" + u.getUser() + "@127.0.0.1:6667 JOIN " + chan + "\n";
-	std::string mode = ":127.0.0.1:6667 MODE " + u.getNick() + " " + chan + " +nt\n";
-	//std::string topic = ":127.0.0.1 332 " + u.getNick() + " " + chan + " :Channel cool\n";
-	std::string listbegin = ":127.0.0.1:6667 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
-	//std::string op = ":127.0.0.1 381 " + u.getNick() + " " + chan + " :You are OP\n";
-	std::string listend = ":127.0.0.1:6667 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
+	// std::string join = ":" + u.getNick() + "!" + u.getUser() + "@127.0.0.1:6667 JOIN " + chan + "\n";
+	// std::string mode = ":127.0.0.1:6667 MODE " + u.getNick() + " " + chan + " +nt\n";
+	// //std::string topic = ":127.0.0.1 332 " + u.getNick() + " " + chan + " :Channel cool\n";
+	// std::string listbegin = ":127.0.0.1:6667 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
+	// //std::string op = ":127.0.0.1 381 " + u.getNick() + " " + chan + " :You are OP\n";
+	// std::string listend = ":127.0.0.1:6667 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
 
-	std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
+	// std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
 
-	send(u.getFd(), join.c_str(), join.length(), 0);
-	//send(u.getFd(), topic.c_str(), topic.length(), 0);
-	send(u.getFd(), mode.c_str(), mode.length(), 0);
-	send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
-	//send(u.getFd(), op.c_str(), op.length(), 0);
-	send(u.getFd(), listend.c_str(), listend.length(), 0);
+	// send(u.getFd(), join.c_str(), join.length(), 0);
+	// //send(u.getFd(), topic.c_str(), topic.length(), 0);
+	// send(u.getFd(), mode.c_str(), mode.length(), 0);
+	// send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
+	// //send(u.getFd(), op.c_str(), op.length(), 0);
+	// send(u.getFd(), listend.c_str(), listend.length(), 0);
 
 	//Si le channel n'existe pas encore
 	std::map<std::string, Channel>::iterator it = _channels.find(chan);
 	if (it == _channels.end())
 	{
-		
+		createChannelMsg(u, chan);
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
 	}
@@ -175,6 +175,29 @@ void Server::parse_user_info(int client_i, char *buf)
 		u->setConnected(true);
 		connectClient(u);
 	}
+}
+
+void Server::createChannelMsg(User &u, std::string chan) const
+{
+	// size_t		hash = msg.find('#');
+	// size_t		trail = msg.find("\r\n");
+	// std::string	chan = msg.substr(0, trail).substr(hash);
+
+	std::string join = ":" + u.getNick() + "!" + u.getUser() + "@127.0.0.1:6667 JOIN " + chan + "\n";
+	std::string mode = ":127.0.0.1:6667 MODE " + u.getNick() + " " + chan + " +nt\n";
+	//std::string topic = ":127.0.0.1 332 " + u.getNick() + " " + chan + " :Channel cool\n";
+	std::string listbegin = ":127.0.0.1:6667 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
+	//std::string op = ":127.0.0.1 381 " + u.getNick() + " " + chan + " :You are OP\n";
+	std::string listend = ":127.0.0.1:6667 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
+
+	std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
+
+	send(u.getFd(), join.c_str(), join.length(), 0);
+	//send(u.getFd(), topic.c_str(), topic.length(), 0);
+	send(u.getFd(), mode.c_str(), mode.length(), 0);
+	send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
+	//send(u.getFd(), op.c_str(), op.length(), 0);
+	send(u.getFd(), listend.c_str(), listend.length(), 0);
 }
 
 User *Server::getUser(int fd)
