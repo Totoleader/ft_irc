@@ -23,3 +23,13 @@ void Channel::addModerator(std::string modName)
 {
 	_moderatorName.push_back(modName);
 }
+
+std::string Channel::getName()
+{
+	return _name;
+}
+
+std::map <std::string, User> & Channel::getUsers()
+{
+	return _channelUsers;
+}
