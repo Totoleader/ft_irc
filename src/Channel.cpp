@@ -34,12 +34,3 @@ std::map <std::string, User> & Channel::getUsers()
 	return _channelUsers;
 }
 
-std::string Channel::getName()
-{
-	return _name;
-}
-
-std::map <std::string, User> & Channel::getUsers()
-{
-	return _channelUsers;
-}
