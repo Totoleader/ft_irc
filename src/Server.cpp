@@ -98,6 +98,8 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 	{
 		if (&it->second != &u)
 		{
+			if (chan.isOperator(it->second))
+				listBegin += "@";
 			listBegin += it->second.getNick() + " ";
 			send(it->second.getFd(), join.c_str(), join.length(), 0);
 		}
@@ -162,6 +164,7 @@ void Server::joinChannel(User &u, std::string msg)
 		createChannelMsg(u, chan);
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
+		_channels[chan].addModerator(u.getNick());
 	}
 	else//doit check si invite mode only et si user est whitelisted
 	{

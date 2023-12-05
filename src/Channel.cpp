@@ -1,4 +1,4 @@
-#include "./headers/Channel.hpp"
+#include "Channel.hpp"
 
 Channel::Channel()
 {
@@ -39,3 +39,12 @@ std::vector<std::string>& Channel::getmoderatorName()
 	return _moderatorName;
 }
 
+bool Channel::isOperator(User &u)
+{
+	for (std::vector<std::string>::iterator it = _moderatorName.begin(); it != _moderatorName.end(); it++)
+	{
+		if (u.getNick() == *it)
+			return true;
+	}
+	return false;
+}
