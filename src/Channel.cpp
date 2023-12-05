@@ -16,7 +16,7 @@ Channel::~Channel()
 
 void Channel::addUser(User &user)
 {
-	_channelUsers[user.getName()] = user;
+	_channelUsers[user.getNick()] = user;
 }
 
 void Channel::addModerator(std::string modName)
@@ -32,5 +32,10 @@ std::string Channel::getName()
 std::map <std::string, User> & Channel::getUsers()
 {
 	return _channelUsers;
+}
+
+std::vector<std::string>& Channel::getmoderatorName()
+{
+	return _moderatorName;
 }
 

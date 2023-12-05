@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/05 12:55:56 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/05 15:11:23 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ public:
 	void addUser(User &user);
 	void addModerator(std::string modName);
 	std::map <std::string, User> &getUsers();
+	std::vector<std::string> &getmoderatorName();
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);

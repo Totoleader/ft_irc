@@ -40,6 +40,7 @@ public:
 
 	//utils
 	void createChannelMsg(User &u, std::string chan) const;
+	void sendToChannel(std::string chan, std::string message);
 
 	User	*getUser(int fd);
 

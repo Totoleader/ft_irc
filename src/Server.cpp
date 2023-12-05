@@ -80,12 +80,32 @@ void Server::handle_client(int client_i)
 
 
 	parse_user_info(client_i, buf);
-	for (size_t i = 1; i < fds.size(); i++)
-	{
-		if (i != (size_t)client_i)
-			send(fds[i].fd, buf, strlen(buf), 0);
-	}
+	// for (size_t i = 1; i < fds.size(); i++)
+	// {
+	// 	if (i != (size_t)client_i)
+	// 		send(fds[i].fd, buf, strlen(buf), 0);
+	// }
 	_users[client_i - 1].msgReceived();
+}
+
+void Server::joinExistingChannel(User &u, Channel &chan)
+{
+	std::string	join = u.getID() + " JOIN " + chan.getName() + "\n";
+	std::string listBegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan.getName() + " :";
+	std::string listEnd = ":127.0.0.1 366 " + u.getNick() + " " + chan.getName() + " :End of /NAMES list.\n";
+	send(u.getFd(), join.c_str(), join.length(), 0);
+	for (std::map<std::string, User>::iterator it = chan.getUsers().begin(); it != chan.getUsers().end(); it++)
+	{
+		if (&it->second != &u)
+		{
+			listBegin += it->second.getNick() + " ";
+			send(it->second.getFd(), join.c_str(), join.length(), 0);
+		}
+	}
+	listBegin += "\n";
+	std::cout << listBegin << std::endl;
+	send(u.getFd(), listBegin.c_str(), listBegin.length(), 0);
+	send(u.getFd(), listEnd.c_str(), listEnd.length(), 0);
 }
 
 void Server::leaveChannel(User &u, std::string msg)
@@ -97,10 +117,35 @@ void Server::leaveChannel(User &u, std::string msg)
 	std::string reply = u.getID() + " " + msg.substr(0, trail) + "\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
 
+	std::string part_msg = u.getID() + " PART " + chan + "\r\n";
+	sendToChannel(chan, part_msg);
+
+	_channels[chan].getUsers().erase(u.getNick());
+
+
 	if (_channels[chan].getUsers().size() <= 0)
 	{
 		_channels.erase(chan);
+		return ;
 	}
+
+	std::vector<std::string>::iterator it = _channels[chan].getmoderatorName().begin();
+	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
+	{
+		if (*it == u.getNick())
+		{
+			_channels[chan].getmoderatorName().erase(it);
+			_channels[chan].getmoderatorName().push_back(_channels[chan].getUsers().begin()->first);
+
+			std::string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
+			send(_channels[chan].getUsers().begin()->second.getFd(), opMsg.c_str(), opMsg.length(), 0);
+
+			break ;
+		}
+		it++;
+	}
+	
+	
 }
 
 void Server::joinChannel(User &u, std::string msg)
@@ -213,6 +258,14 @@ void Server::createChannelMsg(User &u, std::string chan) const
 	send(u.getFd(), mode.c_str(), mode.length(), 0);
 	send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
 	send(u.getFd(), listend.c_str(), listend.length(), 0);
+}
+
+void Server::sendToChannel(std::string chan, std::string message)
+{
+	for (std::map<std::string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
+    {
+    	send(it->second.getFd(), message.c_str(), message.length(), 0);
+    }
 }
 
 User *Server::getUser(int fd)
