@@ -23,7 +23,6 @@ void User::setIp()
 // or			NICK :Sam sam -> invalide
 void User::parseNickInfo(string nick_msg)
 {
-	size_t trail = nick_msg.find("\r\n");
 	size_t	col = nick_msg.find(":");
 	if (col != string::npos)
 	{
@@ -33,14 +32,13 @@ void User::parseNickInfo(string nick_msg)
 
 	size_t	space = nick_msg.find(" ");
 
-	_nick = nick_msg.substr(0, trail).substr(space + 1);
+	_nick = nick_msg.substr(space + 1);
 }
 
 // Will recieve USER scloutie 0 * Samuel
 // or			USER :s cloutie 0 * :Samuel C -> bad
 void User::parseUserInfo(string nick_msg)
 {
-	size_t trail = nick_msg.find("\r\n");
     size_t space1Pos = nick_msg.find(' ');
     size_t space2Pos = nick_msg.find(' ', space1Pos + 1);
 	size_t last = nick_msg.find("* :");
@@ -51,7 +49,7 @@ void User::parseUserInfo(string nick_msg)
 		last = last + 2;
 
 	_login_name = nick_msg.substr(space1Pos + 1, space2Pos - space1Pos - 1);
-	_real_name = nick_msg.substr(0, trail).substr(last + 1);
+	_real_name = nick_msg.substr(last + 1);
 }
 
 string User::getIp()

@@ -20,7 +20,7 @@ void Server::init()
 	int servSocket;
 
 	hints.ai_family = AF_INET;
-	memset(&hints, 0, sizeof hints);
+	memset(&hints, 0, sizeof hints); // memset bad
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
@@ -70,7 +70,7 @@ void Server::handle_client(int client_i)
 	int i;
 
 	i = client_i - 1;
-	memset(buf, 0, 100);
+	memset(buf, 0, 100); // memset bad
 	
 	if (recv(fds[client_i].fd, buf, 100, 0) <= 0)
 		{disconnect_user(client_i); return ;}
@@ -79,7 +79,7 @@ void Server::handle_client(int client_i)
 	trail = _users[i].getBuffer().find("\r\n");
 	while (trail != string::npos)
 	{
-		command = _users[i].getBuffer().substr(0, trail + 2);
+		command = _users[i].getBuffer().substr(0, trail);
 
 		if (_users[i].isFirstMsg() && !check_password(buf))
 			{disconnect_user(client_i); return ;}
@@ -122,10 +122,9 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 void Server::leaveChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
-	size_t		trail = msg.find("\r\n");
-	string	chan = msg.substr(0, trail).substr(hash);
+	std::string	chan = msg.substr(hash);
 
-	string reply = u.getID() + " " + msg.substr(0, trail) + "\r\n";
+	std::string reply = u.getID() + " " + msg + "\r\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
 
 	string part_msg = u.getID() + " PART " + chan + "\r\n";
@@ -159,8 +158,7 @@ void Server::leaveChannel(User &u, string msg)
 void Server::joinChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
-	size_t		trail = msg.find("\r\n");
-	string	chan = msg.substr(0, trail).substr(hash);
+	std::string	chan = msg.substr(hash);
 
 	//Si le channel n'existe pas encore
 	std::map<string, Channel>::iterator it = _channels.find(chan);
