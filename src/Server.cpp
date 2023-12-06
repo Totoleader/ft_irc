@@ -333,7 +333,7 @@ void Server::connectClient(User *u)
 	std::string msg001 = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network\r\n";
 	std::string msg002 = ":127.0.0.1 002 " + u->getNick() + " :Your host is ft_irc, running version 0.1\r\n";
 	std::string msg003 = ":127.0.0.1 003 " + u->getNick() + " :This server was created NOW\r\n";
-	std::string msg004 = ":127.0.0.1 004 " + u->getNick() + " :ft_irc 0.1 * +i+t+k+o+l\r\n";
+	std::string msg004 = ":127.0.0.1 004 " + u->getNick() + " :ft_irc 0.1 * +itkol\r\n";
 
 	send(u->getFd(), msg001.c_str(), msg001.length(), 0);
 	send(u->getFd(), msg002.c_str(), msg002.length(), 0);
