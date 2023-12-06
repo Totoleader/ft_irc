@@ -155,6 +155,9 @@ void Server::leaveChannel(User &u, string msg)
 	}
 }
 
+// 1 - Parse le message pour extraire les channels et les password
+// ex: JOIN #monchannel,#Supa_channel :MOT DE PASSE,#newchannel 123 -> mettre dans une map
+// 2 - 
 void Server::joinChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
@@ -169,7 +172,7 @@ void Server::joinChannel(User &u, string msg)
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
 	}
-	else if (!_channels[chan].isInviteOnly() || _channels[chan].isWhitelisted(u))//bouncer
+	else if (!_channels[chan].isInviteOnly() || _channels[chan].isWhitelisted(u))//bouncer (rebondisseur)
 	{
 		_channels[chan].addUser(u);
 		joinExistingChannel(u, _channels[chan]);
