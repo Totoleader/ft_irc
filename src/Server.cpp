@@ -321,12 +321,8 @@ void Server::new_client()
 void Server::new_client(int fd)
 {
 	struct pollfd	newClient;
-	// User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-
-	// newUser.setFd(fd);
-	// _users.push_back(newUser);
 	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
