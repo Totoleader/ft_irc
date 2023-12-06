@@ -19,8 +19,8 @@ void Server::init()
 	addrinfo hints;
 	int servSocket;
 
-	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
+	memset(&hints, 0, sizeof hints);
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
@@ -42,7 +42,7 @@ void Server::init_clients()
 {
 	int poll_events;
 
-	while (1)
+	while (true)
 	{
 		poll_events = poll(fds.data(), fds.size(), -1);
 	
@@ -65,27 +65,39 @@ void Server::init_clients()
 void Server::handle_client(int client_i)
 {
 	char buf[100];
+	std::string command;
+	size_t		trail;
+	int i;
+
+	i = client_i - 1;
 	memset(buf, 0, 100);
-	if (recv(fds[client_i].fd, buf, 100, 0) <= 0 || (_users[client_i - 1].isFirstMsg() && !check_password(buf)))
+	
+	if (recv(fds[client_i].fd, buf, 100, 0) <= 0)
+		{disconnect_user(client_i); return ;}
+
+	_users[i].setBuffer(buf);
+	trail = _users[i].getBuffer().find("\r\n");
+	while (trail != std::string::npos)
 	{
-		disconnect_user(client_i);
-		return ;
+		command = _users[i].getBuffer().substr(0, trail + 2);
+
+		if (_users[i].isFirstMsg() && !check_password(buf))
+			{disconnect_user(client_i); return ;}
+		if (command.substr(0, 4) == "JOIN")
+			joinChannel(_users[i], command);
+		if (command.substr(0, 4) == "PART")
+			leaveChannel(_users[i], command);
+
+		std::cout << std::endl << "client send: " << command.c_str() << std::endl;
+
+		parse_user_info(client_i, command);
+		// for (size_t i = 1; i < fds.size(); i++)
+		// {
+		// 	if (i != (size_t)client_i)
+		// 		send(fds[i].fd, command.c_str(), strlen(command.c_str()), 0);
+		// }
+		_users[i].doneWithCommandGoToNextPlz(&trail);
 	}
-	if (!strncmp(buf, "JOIN", 4))
-		joinChannel(_users[client_i - 1], buf);
-	if (!strncmp(buf, "PART", 4))
-		leaveChannel(_users[client_i - 1], buf);
-
-	std::cout << std::endl << "client send: " << buf << std::endl;
-
-
-	parse_user_info(client_i, buf);
-	// for (size_t i = 1; i < fds.size(); i++)
-	// {
-	// 	if (i != (size_t)client_i)
-	// 		send(fds[i].fd, buf, strlen(buf), 0);
-	// }
-	_users[client_i - 1].msgReceived();
 }
 
 void Server::joinExistingChannel(User &u, Channel &chan)
@@ -207,14 +219,13 @@ void Server::disconnect_user(int client_i)
 	std::cout << std::endl << "client send: " << buf << client_i << ":" << fds.size() << std::endl;
 }
 
-void Server::parse_user_info(int client_i, char *buf)
+void Server::parse_user_info(int client_i, std::string parseUserInfo)
 {
-	std::string parseUserInfo = buf;
-	if (!strncmp(buf, "NICK", 4))
+	if (parseUserInfo.substr(0, 4) == "NICK")
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
-	if (!strncmp(buf, "USER", 4))
+	if (parseUserInfo.substr(0, 4) == "USER")
 		_users[client_i - 1].parseUserInfo(parseUserInfo);
-	
+
 	User *u = &_users[client_i - 1];
 	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
 	{
