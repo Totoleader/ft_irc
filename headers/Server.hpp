@@ -41,6 +41,7 @@ public:
 	//utils
 	void createChannelMsg(User &u, std::string chan) const;
 	void sendToChannel(std::string chan, std::string message);
+	void sendToChannelExcept(std::string chan, std::string message, User &except);
 
 	User	*getUser(int fd);
 
