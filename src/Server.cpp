@@ -14,6 +14,7 @@ Server::~Server()
 	freeaddrinfo(_servinfo);
 }
 
+// Initialisation du serveur au début du programme
 void Server::init()
 {
 	addrinfo hints;
@@ -38,20 +39,21 @@ void Server::init()
 	listen(fds[0].fd, 10);//!!!10 = max connection
 }
 
+//boucle principale d'écoute du serveur
 void Server::init_clients()
 {
 	int poll_events;
 
 	while (true)
 	{
-		poll_events = poll(fds.data(), fds.size(), -1);
+		poll_events = poll(fds.data(), fds.size(), -1);//attend un event...
 	
-		if (fds[0].revents & POLLIN)
+		if (fds[0].revents & POLLIN)//nouveau user
 		{
 			new_client();
 			poll_events--;
 		}
-		for (size_t i = 1; i < fds.size() && poll_events; i++)
+		for (size_t i = 1; i < fds.size() && poll_events; i++)//nouveau message provenant du client
 		{
 			if (fds[i].revents & POLLIN)
 			{
@@ -62,6 +64,7 @@ void Server::init_clients()
 	}
 }
 
+//s'occupe de rediriger les messages des clients vers les bonnes fonctions
 void Server::handle_client(int client_i)
 {
 	char buf[100];
@@ -100,6 +103,7 @@ void Server::handle_client(int client_i)
 	}
 }
 
+//Joindre un channel qui existe déja
 void Server::joinExistingChannel(User &u, Channel &chan)
 {
 	string	join = u.getID() + " JOIN " + chan.getName() + "\r\n";
@@ -119,6 +123,7 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 	send(u.getFd(), listEnd.c_str(), listEnd.length(), 0);
 }
 
+//sortir d'un channel
 void Server::leaveChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
@@ -156,6 +161,7 @@ void Server::leaveChannel(User &u, string msg)
 	}
 }
 
+//joindre un channel
 void Server::joinChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
@@ -182,6 +188,7 @@ void Server::joinChannel(User &u, string msg)
 	}
 }
 
+//vérifie si le password donné par le user est correct
 bool Server::check_password(char *buf)
 {
 	const char *password = getPassword();
@@ -208,6 +215,7 @@ bool Server::check_password(char *buf)
 	return false;
 }
 
+//déconnecte un user du serveur
 void Server::disconnect_user(int client_i)
 {
 	char buf[100];
@@ -221,6 +229,7 @@ void Server::disconnect_user(int client_i)
 	cout << endl << "client send: " << buf << client_i << ":" << fds.size() << endl;
 }
 
+//parse user info...
 void Server::parse_user_info(int client_i, string parseUserInfo)
 {
 	if (parseUserInfo.substr(0, 4) == "NICK")
