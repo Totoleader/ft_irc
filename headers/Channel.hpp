@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/05 15:49:28 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/06 15:55:13 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,36 +21,38 @@
 class Channel
 {
 private:
-	std::string 					_name;
-	std::string 					_topic;
+	string 					_name;
+	string 					_topic;
 
-	std::vector<std::string> 		_moderatorName;
+	std::vector<string> 		_moderatorName;
 
-	std::string 					_password;
+	string 					_password;
 	// int								_userLimit;
 
-	std::map<std::string, User>		_channelUsers;
+	std::map<string, User>		_channelUsers;
 
 	//mode
-	// bool							_isInviteOnly;
-	std::vector<std::string>		_inviteList;
+	bool							_isInviteOnly;
+	std::vector<string>		_inviteList;
 
 	// bool							_restrictTopic;
 
 public:
 	Channel();
-	Channel(std::string name, User &u);
+	Channel(string name, User &u);
 	~Channel();
 
 	void addUser(User &user);
-	void addModerator(std::string modName);
-	std::map <std::string, User> &getUsers();
-	std::vector<std::string> &getmoderatorName();
+	void addModerator(string modName);
+	std::map <string, User> &getUsers();
+	std::vector<string> &getmoderatorName();
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);
-	std::string	getName();
+	string	getName();
 	bool isOperator(User &u);
+	bool isInviteOnly();
+	bool isWhitelisted(User &u);
 };
 
 

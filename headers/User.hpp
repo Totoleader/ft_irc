@@ -6,44 +6,45 @@
 # include <netdb.h>
 # include <arpa/inet.h>
 # include <vector>
+# include <Libs.hpp>
 
 class User
 {
 private:
-	std::string				_nick;
-	std::string				_login_name;
-	std::string				_real_name;
-	std::string				_ip;
-	std::string				_port;
+	string				_nick;
+	string				_login_name;
+	string				_real_name;
+	string				_ip;
+	string				_port;
 	bool					_connected;
 	int						_fd;
 	bool					_first_msg;
 	struct sockaddr_storage	*_sock;
 
-	std::string				buffer;
+	string				buffer;
 	
 public:
 	User();
 	~User();
 
-	bool	checkNameValidity(std::string const & name);
+	bool	checkNameValidity(string const & name);
 	bool	recieveInfo(int fd);
-	void	parseNickInfo(std::string nick_msg);
-	void	parseUserInfo(std::string user_msg);
+	void	parseNickInfo(string nick_msg);
+	void	parseUserInfo(string user_msg);
 	
 	void	setIp();
 
-	std::string	getNick();
+	string	getNick();
 
-	std::string	getUser();
+	string	getUser();
 
-	std::string	getName();
+	string	getName();
 
-	std::string	getIp();
+	string	getIp();
 
-	std::string	getPort();
+	string	getPort();
 
-	std::string	getID();
+	string	getID();
 
 	struct sockaddr_storage	*getSock() const;
 	void					setSock(struct sockaddr_storage *s);
@@ -56,7 +57,7 @@ public:
 	bool	isConnected();
 	void	setConnected(bool is_connected);
 	void	setBuffer(char *buf);
-	std::string	getBuffer() const;
+	string	getBuffer() const;
 	void	doneWithCommandGoToNextPlz(size_t *trail);
 };
 

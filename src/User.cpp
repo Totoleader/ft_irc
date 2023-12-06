@@ -21,12 +21,12 @@ void User::setIp()
 
 // Will recieve NICK Sam
 // or			NICK :Sam sam -> invalide
-void User::parseNickInfo(std::string nick_msg)
+void User::parseNickInfo(string nick_msg)
 {
 	size_t	col = nick_msg.find(":");
-	if (col != std::string::npos)
+	if (col != string::npos)
 	{
-		std::cout << "spaces not allowed" << std::endl;
+		cout << "spaces not allowed" << endl;
 		return ; // send error msg to client 
 	}
 
@@ -37,13 +37,13 @@ void User::parseNickInfo(std::string nick_msg)
 
 // Will recieve USER scloutie 0 * Samuel
 // or			USER :s cloutie 0 * :Samuel C -> bad
-void User::parseUserInfo(std::string nick_msg)
+void User::parseUserInfo(string nick_msg)
 {
     size_t space1Pos = nick_msg.find(' ');
     size_t space2Pos = nick_msg.find(' ', space1Pos + 1);
 	size_t last = nick_msg.find("* :");
 	
-	if (last == std::string::npos)
+	if (last == string::npos)
 		last = nick_msg.find_last_of(' ');
 	else
 		last = last + 2;
@@ -52,32 +52,32 @@ void User::parseUserInfo(std::string nick_msg)
 	_real_name = nick_msg.substr(last + 1);
 }
 
-std::string User::getIp()
+string User::getIp()
 {
 	return _ip;
 }
 
-std::string User::getPort()
+string User::getPort()
 {
 	return _port;
 }
 
-std::string User::getNick()
+string User::getNick()
 {
 	return _nick;
 }
 
-std::string User::getUser()
+string User::getUser()
 {
 	return _login_name;
 }
 
-std::string User::getName()
+string User::getName()
 {
 	return _real_name;
 }
 
-std::string User::getID()
+string User::getID()
 {
 	return ":" + getNick() + "!" + getUser() + "@127.0.0.1:" + getPort();
 }
@@ -117,7 +117,7 @@ void User::setBuffer(char *buf)
 	buffer += buf;
 }
 
-std::string User::getBuffer() const
+string User::getBuffer() const
 {
 	return (buffer);
 }
@@ -140,7 +140,7 @@ void	User::msgReceived()
 		_first_msg = false;
 }
 
-// bool User::checkNameValidity(std::string const & name)
+// bool User::checkNameValidity(string const & name)
 // {
 // 	if (name.empty())
 // 		return false;

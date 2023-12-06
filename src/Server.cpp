@@ -5,7 +5,7 @@ Server::Server():_password("")
 {
 }
 
-Server::Server(std::string password):_password(password)
+Server::Server(string password):_password(password)
 {
 }
 
@@ -31,7 +31,7 @@ void Server::init()
 
 	if (bind(fds[0].fd, _servinfo->ai_addr, _servinfo->ai_addrlen) != 0)
 	{
-		std::cerr << "Bind failed." << std::endl;
+		std::cerr << "Bind failed." << endl;
 		exit (1);
 	}
 
@@ -65,7 +65,7 @@ void Server::init_clients()
 void Server::handle_client(int client_i)
 {
 	char buf[100];
-	std::string command;
+	string command;
 	size_t		trail;
 	int i;
 
@@ -77,7 +77,7 @@ void Server::handle_client(int client_i)
 
 	_users[i].setBuffer(buf);
 	trail = _users[i].getBuffer().find("\r\n");
-	while (trail != std::string::npos)
+	while (trail != string::npos)
 	{
 		command = _users[i].getBuffer().substr(0, trail);
 
@@ -88,7 +88,7 @@ void Server::handle_client(int client_i)
 		if (command.substr(0, 4) == "PART")
 			leaveChannel(_users[i], command);
 
-		std::cout << std::endl << "client send: " << command.c_str() << std::endl;
+		cout << endl << "client send: " << command.c_str() << endl;
 
 		parse_user_info(client_i, command);
 		// for (size_t i = 1; i < fds.size(); i++)
@@ -102,24 +102,24 @@ void Server::handle_client(int client_i)
 
 void Server::joinExistingChannel(User &u, Channel &chan)
 {
-	std::string	join = u.getID() + " JOIN " + chan.getName() + "\r\n";
-	std::string listBegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan.getName() + " :";
-	std::string listEnd = ":127.0.0.1 366 " + u.getNick() + " " + chan.getName() + " :End of /NAMES list.\r\n";
+	string	join = u.getID() + " JOIN " + chan.getName() + "\r\n";
+	string listBegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan.getName() + " :";
+	string listEnd = ":127.0.0.1 366 " + u.getNick() + " " + chan.getName() + " :End of /NAMES list.\r\n";
 	send(u.getFd(), join.c_str(), join.length(), 0);
 	sendToChannelExcept(chan.getName(), join, u);
-	for (std::map<std::string, User>::iterator it = chan.getUsers().begin(); it != chan.getUsers().end(); it++)
+	for (std::map<string, User>::iterator it = chan.getUsers().begin(); it != chan.getUsers().end(); it++)
 	{
 		if (chan.isOperator(it->second))
 			listBegin += "@";
 		listBegin += it->second.getNick() + " ";
 	}
 	listBegin += "\r\n";
-	std::cout << listBegin << std::endl;
+	cout << listBegin << endl;
 	send(u.getFd(), listBegin.c_str(), listBegin.length(), 0);
 	send(u.getFd(), listEnd.c_str(), listEnd.length(), 0);
 }
 
-void Server::leaveChannel(User &u, std::string msg)
+void Server::leaveChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
 	std::string	chan = msg.substr(hash);
@@ -127,7 +127,7 @@ void Server::leaveChannel(User &u, std::string msg)
 	std::string reply = u.getID() + " " + msg + "\r\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
 
-	std::string part_msg = u.getID() + " PART " + chan + "\r\n";
+	string part_msg = u.getID() + " PART " + chan + "\r\n";
 	sendToChannel(chan, part_msg);
 
 	_channels[chan].getUsers().erase(u.getNick());
@@ -139,7 +139,7 @@ void Server::leaveChannel(User &u, std::string msg)
 		return ;
 	}
 
-	std::vector<std::string>::iterator it = _channels[chan].getmoderatorName().begin();
+	std::vector<string>::iterator it = _channels[chan].getmoderatorName().begin();
 	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
 	{
 		if (*it == u.getNick())
@@ -147,34 +147,36 @@ void Server::leaveChannel(User &u, std::string msg)
 			_channels[chan].getmoderatorName().erase(it);
 			_channels[chan].getmoderatorName().push_back(_channels[chan].getUsers().begin()->first);
 
-			std::string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
+			string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
 			sendToChannel(chan, opMsg);
-			//send(_channels[chan].getUsers().begin()->second.getFd(), opMsg.c_str(), opMsg.length(), 0);
-
 			break ;
 		}
 		it++;
 	}
 }
 
-void Server::joinChannel(User &u, std::string msg)
+void Server::joinChannel(User &u, string msg)
 {
 	size_t		hash = msg.find('#');
 	std::string	chan = msg.substr(hash);
 
 	//Si le channel n'existe pas encore
-	std::map<std::string, Channel>::iterator it = _channels.find(chan);
-	if (it == _channels.end())
+	std::map<string, Channel>::iterator it = _channels.find(chan);
+	if (it == _channels.end())//si le channel n'existe pas
 	{
-		std::cout << "*Creating channel*" << std::endl;
+		cout << "*Creating channel*" << endl;
 		createChannelMsg(u, chan);
 		Channel newChannel(chan, u);
 		_channels[chan] = newChannel;
 	}
-	else//doit check si invite mode only et si user est whitelisted
+	else if (!_channels[chan].isInviteOnly() || _channels[chan].isWhitelisted(u))//bouncer
 	{
 		_channels[chan].addUser(u);
 		joinExistingChannel(u, _channels[chan]);
+	}
+	else //n'a pas pu join
+	{
+		//ne peut pas join
 	}
 }
 
@@ -188,16 +190,16 @@ bool Server::check_password(char *buf)
 	}
 	else if (!strncmp(buf, "PASS", 4))
 	{
-		std::cout << "password received:" << buf << std::endl;
+		cout << "password received:" << buf << endl;
 	
 		if (!strncmp(buf + 5, password, strlen(password)) && *(buf + 5 + strlen(password) + 1) != '\r')
 		{
-			std::cout << "right password" << std::endl;
+			cout << "right password" << endl;
 			return true;
 		}
 		else
 		{
-			std::cout << "wrong password" << std::endl;
+			cout << "wrong password" << endl;
 			return false;
 		}
 	}
@@ -214,10 +216,10 @@ void Server::disconnect_user(int client_i)
 	fds.erase(fds.begin() + client_i);
 	_users.erase(_users.begin() + client_i - 1);
 	strcpy(buf, "User disconnected.");
-	std::cout << std::endl << "client send: " << buf << client_i << ":" << fds.size() << std::endl;
+	cout << endl << "client send: " << buf << client_i << ":" << fds.size() << endl;
 }
 
-void Server::parse_user_info(int client_i, std::string parseUserInfo)
+void Server::parse_user_info(int client_i, string parseUserInfo)
 {
 	if (parseUserInfo.substr(0, 4) == "NICK")
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
@@ -227,39 +229,20 @@ void Server::parse_user_info(int client_i, std::string parseUserInfo)
 	User *u = &_users[client_i - 1];
 	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
 	{
-		std::cout << u->getNick() << " is now connected." << std::endl;
+		cout << u->getNick() << " is now connected." << endl;
 		u->setConnected(true);
 		connectClient(u);
 	}
 }
 
-void Server::createChannelMsg(User &u, std::string chan) const
+void Server::createChannelMsg(User &u, string chan) const
 {
-	// size_t		hash = msg.find('#');
-	// size_t		trail = msg.find("\r\n");
-	// std::string	chan = msg.substr(0, trail).substr(hash);
+	string join = u.getID() + " JOIN " + chan + "\n";
+	string mode = ":127.0.0.1 MODE " + u.getNick() + " " + chan + " +nt\r\n";
+	string listbegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\r\n";
+	string listend = ":127.0.0.1 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\r\n";
 
-	// std::string join = ":" + u.getNick() + "!" + u.getUser() + "@127.0.0.1:6667 JOIN " + chan + "\n";
-	// std::string mode = ":127.0.0.1:6667 MODE " + u.getNick() + " " + chan + " +nt\n";
-	// //std::string topic = ":127.0.0.1 332 " + u.getNick() + " " + chan + " :Channel cool\n";
-	// std::string listbegin = ":127.0.0.1:6667 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\n";
-	// //std::string op = ":127.0.0.1 381 " + u.getNick() + " " + chan + " :You are OP\n";
-	// std::string listend = ":127.0.0.1:6667 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\n";
-
-	// std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
-
-	// send(u.getFd(), join.c_str(), join.length(), 0);
-	// //send(u.getFd(), topic.c_str(), topic.length(), 0);
-	// send(u.getFd(), mode.c_str(), mode.length(), 0);
-	// send(u.getFd(), listbegin.c_str(), listbegin.length(), 0);
-	// //send(u.getFd(), op.c_str(), op.length(), 0);
-	// send(u.getFd(), listend.c_str(), listend.length(), 0);
-	std::string join = u.getID() + " JOIN " + chan + "\n";
-	std::string mode = ":127.0.0.1 MODE " + u.getNick() + " " + chan + " +nt\r\n";
-	std::string listbegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan + " :@" + u.getNick() + "\r\n";
-	std::string listend = ":127.0.0.1 366 " + u.getNick() + " " + chan + " :End of /NAMES list.\r\n";
-
-	std::cout << join << std::endl << mode << std::endl << listbegin << std::endl << listend << std::endl;
+	cout << join << endl << mode << endl << listbegin << endl << listend << endl;
 
 	send(u.getFd(), join.c_str(), join.length(), 0);
 	send(u.getFd(), mode.c_str(), mode.length(), 0);
@@ -267,17 +250,17 @@ void Server::createChannelMsg(User &u, std::string chan) const
 	send(u.getFd(), listend.c_str(), listend.length(), 0);
 }
 
-void Server::sendToChannel(std::string chan, std::string message)
+void Server::sendToChannel(string chan, string message)
 {
-	for (std::map<std::string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
+	for (std::map<string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
     {
     	send(it->second.getFd(), message.c_str(), message.length(), 0);
     }
 }
 
-void Server::sendToChannelExcept(std::string chan, std::string message, User &except)
+void Server::sendToChannelExcept(string chan, string message, User &except)
 {
-	for (std::map<std::string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
+	for (std::map<string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
     {
 		if (it->second.getNick() != except.getNick())
     		send(it->second.getFd(), message.c_str(), message.length(), 0);
@@ -319,12 +302,8 @@ void Server::new_client()
 void Server::new_client(int fd)
 {
 	struct pollfd	newClient;
-	// User			newUser;
 	
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-
-	// newUser.setFd(fd);
-	// _users.push_back(newUser);
 	newClient.events = POLLIN;
 	newClient.fd = fd;
 	fds.push_back(newClient);
@@ -332,10 +311,10 @@ void Server::new_client(int fd)
 
 void Server::connectClient(User *u)
 {
-	std::string msg001 = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network\r\n";
-	std::string msg002 = ":127.0.0.1 002 " + u->getNick() + " :Your host is ft_irc, running version 0.1\r\n";
-	std::string msg003 = ":127.0.0.1 003 " + u->getNick() + " :This server was created NOW\r\n";
-	std::string msg004 = ":127.0.0.1 004 " + u->getNick() + " :ft_irc 0.1 * +itkol\r\n";
+	string msg001 = ":127.0.0.1 001 " + u->getNick() + " :Welcome to the Internet Relay Network\r\n";
+	string msg002 = ":127.0.0.1 002 " + u->getNick() + " :Your host is ft_irc, running version 0.1\r\n";
+	string msg003 = ":127.0.0.1 003 " + u->getNick() + " :This server was created NOW\r\n";
+	string msg004 = ":127.0.0.1 004 " + u->getNick() + " :ft_irc 0.1 * +itkol\r\n";
 
 	send(u->getFd(), msg001.c_str(), msg001.length(), 0);
 	send(u->getFd(), msg002.c_str(), msg002.length(), 0);
@@ -343,7 +322,7 @@ void Server::connectClient(User *u)
 	send(u->getFd(), msg004.c_str(), msg004.length(), 0);
 }
 
-void Server::setPassword(std::string newPassword)
+void Server::setPassword(string newPassword)
 {
 	_password = newPassword;
 }
