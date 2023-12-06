@@ -36,7 +36,7 @@ public:
 	void new_client();
 	void new_client(int fd);
 	void disconnect_user(int client_i);
-	void parse_user_info(int client_i, char *buf);
+	void parse_user_info(int client_i, std::string parseUserInfo);
 
 	//utils
 	void createChannelMsg(User &u, std::string chan) const;
@@ -48,6 +48,7 @@ public:
 	void 		setPassword(std::string newPassword);
 	const char	*getPassword()	const;
 	int			getSocket()		const;
+
 
 };
 

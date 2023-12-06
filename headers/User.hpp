@@ -19,6 +19,8 @@ private:
 	int						_fd;
 	bool					_first_msg;
 	struct sockaddr_storage	*_sock;
+
+	std::string				buffer;
 	
 public:
 	User();
@@ -53,6 +55,9 @@ public:
 
 	bool	isConnected();
 	void	setConnected(bool is_connected);
+	void	setBuffer(char *buf);
+	std::string	getBuffer() const;
+	void	doneWithCommandGoToNextPlz(size_t *trail);
 };
 
 #endif

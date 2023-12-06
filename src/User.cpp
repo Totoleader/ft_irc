@@ -114,6 +114,23 @@ void User::setConnected(bool is_connected)
 	_connected = is_connected;
 }
 
+void User::setBuffer(char *buf)
+{
+	buffer += buf;
+}
+
+std::string User::getBuffer() const
+{
+	return (buffer);
+}
+
+void User::doneWithCommandGoToNextPlz(size_t *trail)
+{
+	buffer = buffer.substr(*trail + 2);
+	*trail = getBuffer().find("\r\n");
+	msgReceived();
+}
+
 bool	User::isFirstMsg() const
 {
 	return (_first_msg);
