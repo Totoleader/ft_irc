@@ -4,7 +4,7 @@ Channel::Channel()
 {
 }
 
-Channel::Channel(std::string name, User &u): _name(name)
+Channel::Channel(string name, User &u): _name(name)
 {
 	addUser(u);
 	addModerator(u.getNick());
@@ -19,29 +19,44 @@ void Channel::addUser(User &user)
 	_channelUsers[user.getNick()] = user;
 }
 
-void Channel::addModerator(std::string modName)
+void Channel::addModerator(string modName)
 {
 	_moderatorName.push_back(modName);
 }
 
-std::string Channel::getName()
+string Channel::getName()
 {
 	return _name;
 }
 
-std::map <std::string, User> & Channel::getUsers()
+std::map <string, User> & Channel::getUsers()
 {
 	return _channelUsers;
 }
 
-std::vector<std::string>& Channel::getmoderatorName()
+std::vector<string>& Channel::getmoderatorName()
 {
 	return _moderatorName;
 }
 
 bool Channel::isOperator(User &u)
 {
-	for (std::vector<std::string>::iterator it = _moderatorName.begin(); it != _moderatorName.end(); it++)
+	for (std::vector<string>::iterator it = _moderatorName.begin(); it != _moderatorName.end(); it++)
+	{
+		if (u.getNick() == *it)
+			return true;
+	}
+	return false;
+}
+
+bool Channel::isInviteOnly()
+{
+	return (_isInviteOnly);
+}
+
+bool Channel::isWhitelisted(User &u)
+{
+	for (std::vector<string>::iterator it = _inviteList.begin(); it != _inviteList.end(); it++)
 	{
 		if (u.getNick() == *it)
 			return true;

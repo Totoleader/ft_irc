@@ -18,4 +18,8 @@
 #include <map>
 #include <fcntl.h>
 
+using std::string;
+using std::cout;
+using std::endl;
+
 #endif // __LIBS_H__
