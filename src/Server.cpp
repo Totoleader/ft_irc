@@ -365,7 +365,16 @@ void Server::sendMessage(User &u , string message)
 	// message = message.substr(messageBegin);
 	msg = u.getID() + " " + message + "\r\n";
 
-	sendToChannelExcept(channel, msg, u);
+	if (channel.at(0) == '#') //&&channel exists???
+		sendToChannelExcept(channel, msg, u);
+	else
+	{
+		for (size_t i = 0; i < _users.size(); i++)
+		{
+			if (_users[i].getNick() == channel)
+				{send(_users[i].getFd(), msg.c_str(), msg.length(), 0); return;}
+    	}
+	}
 }
 
 void Server::setPassword(string newPassword)
