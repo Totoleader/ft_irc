@@ -86,19 +86,22 @@ void Server::handle_client(int client_i)
 
 		if (_users[i].isFirstMsg() && !check_password(buf))
 			{disconnect_user(client_i); return ;}
-		if (command.substr(0, 4) == "JOIN")
+		else if (command.substr(0, 4) == "JOIN")
 			joinChannel(_users[i], command);
-		if (command.substr(0, 4) == "PART")
+		else if (command.substr(0, 4) == "PART")
 			leaveChannel(_users[i], command);
+		else if (command.substr(0, 7) == "PRIVMSG")
+			sendMessage(_users[i], command);
+		else
+			parse_user_info(client_i, command);
 
-		cout << endl << "client send: " << command.c_str() << endl;
 
-		parse_user_info(client_i, command);
 		// for (size_t i = 1; i < fds.size(); i++)
 		// {
 		// 	if (i != (size_t)client_i)
 		// 		send(fds[i].fd, command.c_str(), strlen(command.c_str()), 0);
 		// }
+		cout << endl << "client send: " << command.c_str() << endl;
 		_users[i].doneWithCommandGoToNextPlz(&trail);
 	}
 }
@@ -230,13 +233,15 @@ void Server::disconnect_user(int client_i)
 //parse user info...
 void Server::parse_user_info(int client_i, string parseUserInfo)
 {
+	User *u = &_users[client_i - 1];
+
 	if (parseUserInfo.substr(0, 4) == "NICK")
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
-	if (parseUserInfo.substr(0, 4) == "USER")
+
+	else if (parseUserInfo.substr(0, 4) == "USER")
 		_users[client_i - 1].parseUserInfo(parseUserInfo);
 
-	User *u = &_users[client_i - 1];
-	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
+	else if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
 	{
 		cout << u->getNick() << " is now connected." << endl;
 		u->setConnected(true);
