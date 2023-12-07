@@ -11,7 +11,7 @@
 class User
 {
 private:
-	string				_nick;
+	string				_nick; 
 	string				_login_name;
 	string				_real_name;
 	string				_ip;

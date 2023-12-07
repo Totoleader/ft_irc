@@ -33,6 +33,7 @@ public:
 	void joinExistingChannel(User &u, Channel &chan);
 	void joinChannel(User &u, std::pair<string, string> chan);
 	void connectClient(User *u);
+	void sendMessage(User &u , string message);
 
 	void new_client();
 	void new_client(int fd);

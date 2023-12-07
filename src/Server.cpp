@@ -90,8 +90,8 @@ void Server::handle_client(int client_i)
 			getAndJoinChannels(_users[i], command.substr(5)); //enleve la partie JOIN du message
 		else if (command.substr(0, 4) == "PART")
 			leaveChannel(_users[i], command);
-		// else if (command.substr(0, 7) == "PRIVMSG")
-		// 	sendMessage(_users[i], command);
+		else if (command.substr(0, 7) == "PRIVMSG")
+			sendMessage(_users[i], command);
 		else
 			parse_user_info(client_i, command);
 
@@ -349,6 +349,23 @@ void Server::connectClient(User *u)
 	send(u->getFd(), msg002.c_str(), msg002.length(), 0);
 	send(u->getFd(), msg003.c_str(), msg003.length(), 0);
 	send(u->getFd(), msg004.c_str(), msg004.length(), 0);
+}
+
+void Server::sendMessage(User &u , string message)
+{
+	size_t channelBegin;
+	size_t messageBegin;
+	string channel;
+	string msg;
+
+	channelBegin = message.find(' ', 0) + 1;
+	messageBegin = message.find(' ', channelBegin + 1) + 1;
+
+	channel = message.substr(channelBegin, messageBegin - channelBegin - 1);
+	// message = message.substr(messageBegin);
+	msg = u.getID() + " " + message + "\r\n";
+
+	sendToChannelExcept(channel, msg, u);
 }
 
 void Server::setPassword(string newPassword)
