@@ -4,7 +4,7 @@ Channel::Channel()
 {
 }
 
-Channel::Channel(string name, User &u): _name(name)
+Channel::Channel(string name, User &u, string password): _name(name), _password(password)
 {
 	addUser(u);
 	addModerator(u.getNick());
@@ -62,4 +62,9 @@ bool Channel::isWhitelisted(User &u)
 			return true;
 	}
 	return false;
+}
+
+string Channel::getPassword()
+{
+	return _password;
 }

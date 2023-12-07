@@ -8,6 +8,8 @@ SRCS	:=	src/main.cpp \
 			src/Server.cpp \
 			src/User.cpp \
 			src/Channel.cpp \
+			src/parse.cpp \
+			src/join.cpp \
 
 OBJS	:= $(patsubst src/%.cpp,bin/%.o,$(SRCS))
 

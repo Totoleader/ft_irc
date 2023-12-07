@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
+/*   By: scloutie <scloutie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/06 15:55:13 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/07 10:07:10 by scloutie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ private:
 
 public:
 	Channel();
-	Channel(string name, User &u);
+	Channel(string name, User &u, string password);
 	~Channel();
 
 	void addUser(User &user);
@@ -53,6 +53,7 @@ public:
 	bool isOperator(User &u);
 	bool isInviteOnly();
 	bool isWhitelisted(User &u);
+	string getPassword();
 };
 
 
