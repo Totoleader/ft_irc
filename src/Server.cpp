@@ -84,7 +84,7 @@ void Server::handle_client(int client_i)
 		if (_users[i].isFirstMsg() && !check_password(buf))
 			{disconnect_user(client_i); return ;}
 		if (command.substr(0, 4) == "JOIN")
-			joinChannel(_users[i], command);
+			getAndJoinChannels(_users[i], command.substr(5)); //enleve la partie JOIN du message
 		if (command.substr(0, 4) == "PART")
 			leaveChannel(_users[i], command);
 
@@ -97,6 +97,19 @@ void Server::handle_client(int client_i)
 		// 		send(fds[i].fd, command.c_str(), strlen(command.c_str()), 0);
 		// }
 		_users[i].doneWithCommandGoToNextPlz(&trail);
+	}
+}
+
+void Server::getAndJoinChannels(User &u, string channels_msg)
+{
+	std::map<string, string> chans = parseChannels(channels_msg);
+
+	std::map<string, string>::iterator it;
+	for (it = chans.begin(); it != chans.end(); it++)
+	{
+		// peut etre verifier le nom du channel ici
+		// verifier le mot de passe
+		joinChannel(u, *it);
 	}
 }
 
@@ -155,27 +168,21 @@ void Server::leaveChannel(User &u, string msg)
 	}
 }
 
-// 1 - Parse le message pour extraire les channels et les password
-// ex: JOIN #monchannel,#Supa_channel :MOT DE PASSE,#newchannel 123 -> mettre dans une map
-// 2 - 
-void Server::joinChannel(User &u, string msg)
+void Server::joinChannel(User &u, std::pair<string, string> chan)
 {
-	size_t		hash = msg.find('#');
-	std::string	chan = msg.substr(hash);
-
 	//Si le channel n'existe pas encore
-	std::map<string, Channel>::iterator it = _channels.find(chan);
+	std::map<string, Channel>::iterator it = _channels.find(chan.first);
 	if (it == _channels.end())//si le channel n'existe pas
 	{
 		cout << "*Creating channel*" << endl;
-		createChannelMsg(u, chan);
-		Channel newChannel(chan, u);
-		_channels[chan] = newChannel;
+		createChannelMsg(u, chan.first);
+		Channel newChannel(chan.first, u);
+		_channels[chan.first] = newChannel;
 	}
-	else if (!_channels[chan].isInviteOnly() || _channels[chan].isWhitelisted(u))//bouncer (rebondisseur)
+	else if (!_channels[chan.first].isInviteOnly() || _channels[chan.first].isWhitelisted(u))//bouncer (rebondisseur)
 	{
-		_channels[chan].addUser(u);
-		joinExistingChannel(u, _channels[chan]);
+		_channels[chan.first].addUser(u);
+		joinExistingChannel(u, _channels[chan.first]);
 	}
 	else //n'a pas pu join
 	{
