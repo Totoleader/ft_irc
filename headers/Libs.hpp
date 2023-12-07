@@ -23,6 +23,4 @@ using std::string;
 using std::cout;
 using std::endl;
 
-std::map<std::string, std::string>	parseChannels(std::string channels);
-
 #endif // __LIBS_H__

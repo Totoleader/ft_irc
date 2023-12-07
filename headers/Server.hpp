@@ -2,6 +2,7 @@
 #define __SERVEUR_H__
 
 #include "Libs.hpp"
+#include "Irc.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
 

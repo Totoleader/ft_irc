@@ -176,21 +176,27 @@ void Server::joinChannel(User &u, std::pair<string, string> chan)
 	{
 		cout << "*Creating channel*" << endl;
 		createChannelMsg(u, chan.first);
-		Channel newChannel(chan.first, u);
+		Channel newChannel(chan.first, u, chan.second);
 		_channels[chan.first] = newChannel;
 	}
-	else if (!_channels[chan.first].isInviteOnly() || _channels[chan.first].isWhitelisted(u))//bouncer (rebondisseur)
+	else if (!checkInvited(u, _channels[chan.first])) //bouncer
+	{
+		
+	}
+	else if (!passIsOk(_channels[chan.first], chan.second))
+	{
+		std::string err_badchankey = ":127.0.0.1 475 " + u.getNick() + " " + chan.first + " :Cannot join channel (+k)\r\n";
+		send(u.getFd(), err_badchankey.c_str(), err_badchankey.length(), 0);
+		return ;
+	}
+	else // join
 	{
 		_channels[chan.first].addUser(u);
 		joinExistingChannel(u, _channels[chan.first]);
 	}
-	else //n'a pas pu join
-	{
-		//ne peut pas join
-	}
 }
 
-bool Server::check_password(char *buf)
+bool Server::check_password(char *buf) //strncmp bad
 {
 	const char *password = getPassword();
 
@@ -225,7 +231,7 @@ void Server::disconnect_user(int client_i)
 	close(fds[client_i].fd);
 	fds.erase(fds.begin() + client_i);
 	_users.erase(_users.begin() + client_i - 1);
-	strcpy(buf, "User disconnected.");
+	strcpy(buf, "User disconnected."); //strcpy bad
 	cout << endl << "client send: " << buf << client_i << ":" << fds.size() << endl;
 }
 
