@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <fcntl.h>
+#include <sstream>
 
 using std::string;
 using std::cout;

@@ -2,6 +2,7 @@
 #define __SERVEUR_H__
 
 #include "Libs.hpp"
+#include "Irc.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
 
@@ -30,7 +31,7 @@ public:
 
 	void leaveChannel(User &u, string msg);
 	void joinExistingChannel(User &u, Channel &chan);
-	void joinChannel(User &u, string msg);
+	void joinChannel(User &u, std::pair<string, string> chan);
 	void connectClient(User *u);
 
 	void new_client();
@@ -42,6 +43,7 @@ public:
 	void createChannelMsg(User &u, string chan) const;
 	void sendToChannel(string chan, string message);
 	void sendToChannelExcept(string chan, string message, User &except);
+	void getAndJoinChannels(User &u, string channels);
 
 	User	*getUser(int fd);
 
