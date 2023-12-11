@@ -24,6 +24,37 @@ void Channel::addModerator(string modName)
 	_moderatorName.push_back(modName);
 }
 
+void Channel::giveOp(User &giver, User &reveiver)
+{
+	if (isOperator(giver))
+	{
+		addModerator(reveiver.getNick());
+		string opMsg = ":127.0.0.1 MODE " + _name + " +o " + _channelUsers.begin()->second.getNick() + "\r\n";
+		// sendToChannel(chan, opMsg);
+	}
+	else
+	{
+		//could not give operator
+	}
+}
+
+void Channel::sendToChannel(string message)
+{
+	for (std::map<string, User>::iterator it = _channelUsers.begin(); it != _channelUsers.end(); it++)
+    {
+    	send(it->second.getFd(), message.c_str(), message.length(), 0);
+    }
+}
+
+void Channel::sendToChannelExcept(string message, User &except)
+{
+	for (std::map<string, User>::iterator it = _channelUsers.begin(); it != _channelUsers.end(); it++)
+    {
+		if (it->second.getNick() != except.getNick())
+    		send(it->second.getFd(), message.c_str(), message.length(), 0);
+    }
+}
+
 string Channel::getName()
 {
 	return _name;
@@ -67,4 +98,9 @@ bool Channel::isWhitelisted(User &u)
 string Channel::getPassword()
 {
 	return _password;
+}
+
+void	Channel::addToWhiteList(string newUser)
+{
+	_inviteList.push_back(newUser);
 }

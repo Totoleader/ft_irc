@@ -31,7 +31,7 @@ public:
 	bool	recieveInfo(int fd);
 	void	parseNickInfo(string nick_msg);
 	void	parseUserInfo(string user_msg);
-	
+
 	void	setIp();
 
 	string	getNick();

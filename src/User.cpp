@@ -31,6 +31,7 @@ void User::parseNickInfo(string nick_msg)
 	}
 
 	size_t	space = nick_msg.find(" ");
+	
 
 	_nick = nick_msg.substr(space + 1);
 }

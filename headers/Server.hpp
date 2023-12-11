@@ -42,8 +42,6 @@ public:
 
 	//utils
 	void createChannelMsg(User &u, string chan) const;
-	void sendToChannel(string chan, string message);
-	void sendToChannelExcept(string chan, string message, User &except);
 	void getAndJoinChannels(User &u, string channels);
 
 	User	*getUser(int fd);
@@ -51,6 +49,15 @@ public:
 	void 		setPassword(string newPassword);
 	const char	*getPassword()	const;
 	int			getSocket()		const;
+
+		//AJOUT DE ALEX // 
+	void kickChannels(User &u, string str);
+	void skipWhitespace(std::string &str);
+	bool isUser(string user_to_kick, string channel_name);
+	bool userExist(string user_to_invite);
+	bool channelExist(string channel_name);
+	void inviteChannels(User &u, string str);
+
 
 
 };

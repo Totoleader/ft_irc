@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scloutie <scloutie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/07 10:07:10 by scloutie         ###   ########.fr       */
+/*   Updated: 2023/12/11 15:09:19 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,12 @@ public:
 
 	void addUser(User &user);
 	void addModerator(string modName);
+	void giveOp(User &giver, User &reveiver);
 	std::map <string, User> &getUsers();
 	std::vector<string> &getmoderatorName();
+
+	void sendToChannel(string message);
+	void sendToChannelExcept(string message, User &except);
 	//setPassword(...);
 	//setOperator(...);
 	//setUserLimit(...);
@@ -54,6 +58,9 @@ public:
 	bool isInviteOnly();
 	bool isWhitelisted(User &u);
 	string getPassword();
+	void	addToWhiteList(string newUser);
+
+
 };
 
 
