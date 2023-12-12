@@ -368,7 +368,7 @@ void Server::sendMessage(User &u , string message)
 	// message = message.substr(messageBegin);
 	msg = u.getID() + " " + message + "\r\n";
 
-	if (chan.at(0) == '#') //&&channel exists???
+	if (chan.at(0) == '#' && channelExist(chan) && isUser(u.getNick(), chan))
 		_channels[chan].sendToChannelExcept(msg, u);
 	else
 	{
@@ -492,7 +492,7 @@ void Server::kickChannels(User &u, string str)
 		bool userChannel = isUser(user_to_kick, channel_name);
 		if (modo == true && userChannel == true)
 		{
-			string msg_kick_info = user_to_kick + " has been kicked of the channel\r\n";
+			string msg_kick_info = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
 			if (wordCount > 2)
 				msg_kick_info = user_to_kick + " has been kicked of the channel for the reason : " + reason_to_kick + "\r\n";
 			for (std::map<string, User>::iterator it = _channels[channel_name].getUsers().begin(); it != _channels[channel_name].getUsers().end(); it++)
