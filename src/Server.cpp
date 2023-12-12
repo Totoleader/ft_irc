@@ -86,7 +86,7 @@ void Server::handle_client(int client_i)
 		if (command.substr(0, 4) == "JOIN")
 			getAndJoinChannels(_users[i], command.substr(5)); //enleve la partie JOIN du message
 		if (command.substr(0, 4) == "PART")
-			leaveChannel(_users[i], command);
+			leaveChannel(_users[i], command.substr(5));
 
 		cout << endl << "client send: " << command.c_str() << endl;
 
@@ -134,34 +134,70 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 
 void Server::leaveChannel(User &u, string msg)
 {
-	size_t		hash = msg.find('#');
-	std::string	chan = msg.substr(hash);
+	std::istringstream	stream(msg);
+	string				token;
+	std::vector<string>	args;
+	int					in_word = false;
 
-	std::string reply = u.getID() + " " + msg + "\r\n";
+	// mettre ca dans fonction std::vector<string> getArgs(string msg)
+	if (msg == ":")
+	{
+		cout << "bruh u need more args" << endl;
+		return ;
+	}
+	while (std::getline(stream, token, ' '))
+	{
+		cout << "token: " << token << endl;
+		if (token.at(0) == ':' && !in_word)
+		{
+			in_word = true;
+			token = (token.length() > 1) ? token.substr(1) : "";
+			args.push_back(token);
+			continue ;
+		}
+		if (!in_word)
+			args.push_back(token);
+		else if (args.size() == 2)
+			args[1] += " " + token;
+	}
+
+	
+	string part_msg;
+	if (args.size() == 1)
+	{
+		part_msg = u.getID() + " PART " + args[0] + "\r\n";
+	}
+	else if (args.size() == 2)
+	{
+		part_msg = u.getID() + " PART " + args[0] + " :" + args[1] + "\r\n";
+	}
+	cout << "to channel: " << part_msg << endl;
+
+	std::string reply = u.getID() + " PART " + msg + "\r\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
 
-	string part_msg = u.getID() + " PART " + chan + "\r\n";
-	sendToChannel(chan, part_msg);
+	
+	sendToChannelExcept(args[0], part_msg, u);
 
-	_channels[chan].getUsers().erase(u.getNick());
+	_channels[args[0]].getUsers().erase(u.getNick());
 
 
-	if (_channels[chan].getUsers().size() <= 0)
+	if (_channels[args[0]].getUsers().size() <= 0)
 	{
-		_channels.erase(chan);
+		_channels.erase(args[0]);
 		return ;
 	}
 
-	std::vector<string>::iterator it = _channels[chan].getmoderatorName().begin();
-	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
+	std::vector<string>::iterator it = _channels[args[0]].getmoderatorName().begin();
+	while (_channels[args[0]].getmoderatorName().size() == 1 && it != _channels[args[0]].getmoderatorName().end())
 	{
 		if (*it == u.getNick())
 		{
-			_channels[chan].getmoderatorName().erase(it);
-			_channels[chan].getmoderatorName().push_back(_channels[chan].getUsers().begin()->first);
+			_channels[args[0]].getmoderatorName().erase(it);
+			_channels[args[0]].getmoderatorName().push_back(_channels[args[0]].getUsers().begin()->first);
 
-			string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
-			sendToChannel(chan, opMsg);
+			string opMsg = ":127.0.0.1 MODE " + args[0] + " +o " + _channels[args[0]].getUsers().begin()->second.getNick() + "\r\n";
+			sendToChannel(args[0], opMsg);
 			break ;
 		}
 		it++;
