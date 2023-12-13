@@ -92,9 +92,9 @@ bool Channel::isInviteOnly()
 
 bool Channel::isWhitelisted(User &u)
 {
-	for (std::vector<string>::iterator it = _inviteList.begin(); it != _inviteList.end(); it++)
+	for (std::vector<User>::iterator it = _inviteList.begin(); it != _inviteList.end(); it++)
 	{
-		if (u.getNick() == *it)
+		if (u.getNick() == (*it).getNick())
 			return true;
 	}
 	return false;
@@ -105,7 +105,7 @@ string Channel::getPassword()
 	return _password;
 }
 
-void	Channel::addToWhiteList(string newUser)
+void	Channel::addToWhiteList(User &newUser)
 {
 	_inviteList.push_back(newUser);
 }

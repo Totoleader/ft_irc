@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/13 12:58:13 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/13 14:47:24 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,7 @@ private:
 
 	//mode
 	bool							_isInviteOnly;
-	std::vector<string>		_inviteList;
-
+	std::vector<User>		_inviteList;
 	// bool							_restrictTopic;
 
 public:
@@ -59,7 +58,7 @@ public:
 	void setInviteOnly(bool state);
 	bool isWhitelisted(User &u);
 	string getPassword();
-	void	addToWhiteList(string newUser);
+	void	addToWhiteList(User &newUser);
 
 
 };

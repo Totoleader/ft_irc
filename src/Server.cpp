@@ -145,36 +145,36 @@ void Server::changeMode(User &u, string str)
 		ss >> channel_name >> mode;
 		if (channelExist(channel_name) == true && _channels[channel_name].isOperator(u))
 		{
-			if (mode.find("+i"))
+			if (mode.find("+i") != std::string::npos)
 			{
 				cout << "**Changing mode +i**" << endl;
 				_channels[channel_name].setInviteOnly(true);
 			}
-			else if (mode.find("-i"))
+			else if (mode.find("-i") != std::string::npos)
 			{
 				cout << "**Changing mode -i**" << endl;
 				_channels[channel_name].setInviteOnly(false);
 			}
 
-			if (mode.find("+t"))
-			{cout << "**Changing mode +t (not implemented)**" << endl;}
-			else if (mode.find("-t"))
-			{cout << "**Changing mode -t (not implemented)**" << endl;}
+			if (mode.find("+t") != std::string::npos)
+				{cout << "**Changing mode +t (not implemented)**" << endl;}
+			else if (mode.find("-t") != std::string::npos)
+				{cout << "**Changing mode -t (not implemented)**" << endl;}
 
-			if (mode.find("+k"))
-			{cout << "**Changing mode +k (not implemented)**" << endl;}
-			else if (mode.find("-k"))
-			{cout << "**Changing mode -k (not implemented)**" << endl;}
+			if (mode.find("+k") != std::string::npos)
+				{cout << "**Changing mode +k (not implemented)**" << endl;}
+			else if (mode.find("-k") != std::string::npos)
+				{cout << "**Changing mode -k (not implemented)**" << endl;}
 
-			if (mode.find("+o"))
-			{cout << "**Changing mode +o (not implemented)**" << endl;}
-			else if (mode.find("-o"))
-			{cout << "**Changing mode -o (not implemented)**" << endl;}
+			if (mode.find("+o") != std::string::npos)
+				{cout << "**Changing mode +o (not implemented)**" << endl;}
+			else if (mode.find("-o") != std::string::npos)
+				{cout << "**Changing mode -o (not implemented)**" << endl;}
 
-			if (mode.find("+l"))
-			{cout << "**Changing mode +l (not implemented)**" << endl;}
-			else if (mode.find("-l"))
-			{cout << "**Changing mode -l (not implemented)**" << endl;}
+			if (mode.find("+l") != std::string::npos)
+				{cout << "**Changing mode +l (not implemented)**" << endl;}
+			else if (mode.find("-l") != std::string::npos)
+				{cout << "**Changing mode -l (not implemented)**" << endl;}
 
 		}
 	}
@@ -652,7 +652,7 @@ void Server::inviteChannels(User &u, string str)
 		if (channelExist(channel_name) == true && userExist(user_to_invite) == true)
 		{
 			string msg_invite = "127.0.0.1 341 " + channel_name + " " + user_to_invite + "\r\n";
-			_channels[channel_name].addToWhiteList(user_to_invite);
+			_channels[channel_name].addToWhiteList(*getUser(user_to_invite));
 			for (std::vector<User>::iterator it = _users.begin(); it != _users.end(); it++)
 			{
 				if (it->getNick() == user_to_invite)
