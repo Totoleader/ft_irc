@@ -7,7 +7,7 @@ Channel::Channel()
 Channel::Channel(string name, User &u, string password): _name(name), _password(password)
 {
 	addUser(u);
-	addModerator(u.getNick());
+	addModerator(u);
 }
 
 Channel::~Channel()
@@ -19,16 +19,16 @@ void Channel::addUser(User &user)
 	_channelUsers[user.getNick()] = user;
 }
 
-void Channel::addModerator(string modName)
+void Channel::addModerator(User &mod)
 {
-	_moderatorName.push_back(modName);
+	_operatorList.push_back(mod);
 }
 
 void Channel::giveOp(User &giver, User &reveiver)
 {
 	if (isOperator(giver))
 	{
-		addModerator(reveiver.getNick());
+		addModerator(reveiver);
 		string opMsg = ":127.0.0.1 MODE " + _name + " +o " + _channelUsers.begin()->second.getNick() + "\r\n";
 		// sendToChannel(chan, opMsg);
 	}
@@ -65,16 +65,16 @@ std::map <string, User> & Channel::getUsers()
 	return _channelUsers;
 }
 
-std::vector<string>& Channel::getmoderatorName()
+std::vector<User>& Channel::getOperatorList()
 {
-	return _moderatorName;
+	return _operatorList;
 }
 
 bool Channel::isOperator(User &u)
 {
-	for (std::vector<string>::iterator it = _moderatorName.begin(); it != _moderatorName.end(); it++)
+	for (std::vector<User>::iterator it = _operatorList.begin(); it != _operatorList.end(); it++)
 	{
-		if (u.getNick() == *it)
+		if (u.getNick() == (*it).getNick())
 			return true;
 	}
 	return false;

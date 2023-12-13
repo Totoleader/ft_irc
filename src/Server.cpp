@@ -271,13 +271,13 @@ void Server::leaveChannel(User &u, string msg)
 		return ;
 	}
 
-	std::vector<string>::iterator it = _channels[chan].getmoderatorName().begin();
-	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
+	std::vector<User>::iterator it = _channels[chan].getOperatorList().begin();
+	while (_channels[chan].getOperatorList().size() == 1 && it != _channels[chan].getOperatorList().end())
 	{
-		if (*it == u.getNick())
+		if ((*it).getNick() == u.getNick())
 		{
-			_channels[chan].getmoderatorName().erase(it);
-			_channels[chan].addModerator(_channels[chan].getUsers().begin()->first);
+			_channels[chan].getOperatorList().erase(it);
+			_channels[chan].addModerator(_channels[chan].getUsers().begin()->second);
 
 			string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
 			_channels[chan].sendToChannel(opMsg);
@@ -649,7 +649,7 @@ void Server::inviteChannels(User &u, string str)
  		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
         ss.seekg(0, std::ios::beg);
 		ss >> user_to_invite >> channel_name;
-		if (channelExist(channel_name) == true && userExist(user_to_invite) == true)
+		if (channelExist(channel_name) == true && userExist(user_to_invite) == true && _channels[channel_name].isOperator(u))
 		{
 			string msg_invite = "127.0.0.1 341 " + channel_name + " " + user_to_invite + "\r\n";
 			_channels[channel_name].addToWhiteList(*getUser(user_to_invite));

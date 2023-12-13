@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/13 14:47:24 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/13 15:00:23 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,17 +24,17 @@ private:
 	string 					_name;
 	string 					_topic;
 
-	std::vector<string> 		_moderatorName;
+	std::vector<User> 	_operatorList;
 
 	string 					_password;
-	// int								_userLimit;
+	// int					_userLimit;
 
-	std::map<string, User>		_channelUsers;
+	std::map<string, User>	_channelUsers;
 
 	//mode
-	bool							_isInviteOnly;
+	bool					_isInviteOnly;
 	std::vector<User>		_inviteList;
-	// bool							_restrictTopic;
+	// bool					_restrictTopic;
 
 public:
 	Channel();
@@ -42,10 +42,10 @@ public:
 	~Channel();
 
 	void addUser(User &user);
-	void addModerator(string modName);
+	void addModerator(User &modName);
 	void giveOp(User &giver, User &reveiver);
 	std::map <string, User> &getUsers();
-	std::vector<string> &getmoderatorName();
+	std::vector<User> &getOperatorList();
 
 	void sendToChannel(string message);
 	void sendToChannelExcept(string message, User &except);
