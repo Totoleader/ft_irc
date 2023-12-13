@@ -11,11 +11,11 @@
 class User
 {
 private:
-	string				_nick;
-	string				_login_name;
-	string				_real_name;
-	string				_ip;
-	string				_port;
+	string					_nick; 
+	string					_login_name;
+	string					_real_name;
+	string					_ip;
+	string					_port;
 	bool					_connected;
 	int						_fd;
 	bool					_first_msg;
@@ -31,7 +31,7 @@ public:
 	bool	recieveInfo(int fd);
 	void	parseNickInfo(string nick_msg);
 	void	parseUserInfo(string user_msg);
-	
+
 	void	setIp();
 
 	string	getNick();

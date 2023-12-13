@@ -14,6 +14,7 @@ Server::~Server()
 	freeaddrinfo(_servinfo);
 }
 
+// Initialisation du serveur au début du programme
 void Server::init()
 {
 	addrinfo hints;
@@ -38,20 +39,21 @@ void Server::init()
 	listen(fds[0].fd, 10);//!!!10 = max connection
 }
 
+//boucle principale d'écoute du serveur
 void Server::init_clients()
 {
 	int poll_events;
 
 	while (true)
 	{
-		poll_events = poll(fds.data(), fds.size(), -1);
+		poll_events = poll(fds.data(), fds.size(), -1);//attend un event...
 	
-		if (fds[0].revents & POLLIN)
+		if (fds[0].revents & POLLIN)//nouveau user
 		{
 			new_client();
 			poll_events--;
 		}
-		for (size_t i = 1; i < fds.size() && poll_events; i++)
+		for (size_t i = 1; i < fds.size() && poll_events; i++)//nouveau message provenant du client
 		{
 			if (fds[i].revents & POLLIN)
 			{
@@ -62,6 +64,7 @@ void Server::init_clients()
 	}
 }
 
+//s'occupe de rediriger les messages des clients vers les bonnes fonctions
 void Server::handle_client(int client_i)
 {
 	char buf[100];
@@ -83,20 +86,97 @@ void Server::handle_client(int client_i)
 
 		if (_users[i].isFirstMsg() && !check_password(buf))
 			{disconnect_user(client_i); return ;}
-		if (command.substr(0, 4) == "JOIN")
+		else if (command.substr(0, 4) == "JOIN")
 			getAndJoinChannels(_users[i], command.substr(5)); //enleve la partie JOIN du message
-		if (command.substr(0, 4) == "PART")
-			leaveChannel(_users[i], command.substr(5));
+		else if (command.substr(0, 4) == "PART")
+			leaveChannel(_users[i], command);
+		else if (command.substr(0, 4) == "KICK")
+			kickChannels(_users[i], command.substr(4)); //enleve la partie KICK du message
+		else if (command.substr(0, 6) == "INVITE")
+			inviteChannels(_users[i], command.substr(6)); //enleve la partie INVITE du message
+		else if (command.substr(0, 7) == "PRIVMSG")
+			sendMessage(_users[i], command);
+		else if (command.substr(0, 4) == "MODE")
+			changeMode(_users[i], command.substr(4));
+
+		else
+		{
+			try
+			{
+				parse_user_info(client_i, command);
+			}
+			catch(const std::exception& e)
+			{
+				std::cout << "This nickname already exists." << '\n';
+				std::cerr << e.what() << '\n';
+				continue ;
+			}
+		}
 
 		cout << endl << "client send: " << command.c_str() << endl;
-
-		parse_user_info(client_i, command);
-		// for (size_t i = 1; i < fds.size(); i++)
-		// {
-		// 	if (i != (size_t)client_i)
-		// 		send(fds[i].fd, command.c_str(), strlen(command.c_str()), 0);
-		// }
 		_users[i].doneWithCommandGoToNextPlz(&trail);
+	}
+}
+
+void Server::changeMode(User &u, string str)
+{
+	string channel_name;
+	string mode;
+	string msg461 = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
+
+	std::stringstream ss(str);
+    std::string word;
+
+    // Compte le nombre de mots
+    int wordCount = 0;
+    while (ss >> word) {
+        ++wordCount;
+    }
+    // Analyse le nombre de mots et agit en conséquence
+	if (wordCount < 2)
+	{
+		// send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+		return ;
+	}
+	else
+	{
+ 		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> channel_name >> mode;
+		if (channelExist(channel_name) == true && _channels[channel_name].isOperator(u))
+		{
+			if (mode.find("+i"))
+			{
+				cout << "**Changing mode +i**" << endl;
+				_channels[channel_name].setInviteOnly(true);
+			}
+			else if (mode.find("-i"))
+			{
+				cout << "**Changing mode -i**" << endl;
+				_channels[channel_name].setInviteOnly(false);
+			}
+
+			if (mode.find("+t"))
+			{cout << "**Changing mode +t (not implemented)**" << endl;}
+			else if (mode.find("-t"))
+			{cout << "**Changing mode -t (not implemented)**" << endl;}
+
+			if (mode.find("+k"))
+			{cout << "**Changing mode +k (not implemented)**" << endl;}
+			else if (mode.find("-k"))
+			{cout << "**Changing mode -k (not implemented)**" << endl;}
+
+			if (mode.find("+o"))
+			{cout << "**Changing mode +o (not implemented)**" << endl;}
+			else if (mode.find("-o"))
+			{cout << "**Changing mode -o (not implemented)**" << endl;}
+
+			if (mode.find("+l"))
+			{cout << "**Changing mode +l (not implemented)**" << endl;}
+			else if (mode.find("-l"))
+			{cout << "**Changing mode -l (not implemented)**" << endl;}
+
+		}
 	}
 }
 
@@ -113,13 +193,14 @@ void Server::getAndJoinChannels(User &u, string channels_msg)
 	}
 }
 
+//Joindre un channel qui existe déja
 void Server::joinExistingChannel(User &u, Channel &chan)
 {
 	string	join = u.getID() + " JOIN " + chan.getName() + "\r\n";
 	string listBegin = ":127.0.0.1 353 " + u.getNick() + " = " + chan.getName() + " :";
 	string listEnd = ":127.0.0.1 366 " + u.getNick() + " " + chan.getName() + " :End of /NAMES list.\r\n";
 	send(u.getFd(), join.c_str(), join.length(), 0);
-	sendToChannelExcept(chan.getName(), join, u);
+	chan.sendToChannelExcept(join, u);
 	for (std::map<string, User>::iterator it = chan.getUsers().begin(); it != chan.getUsers().end(); it++)
 	{
 		if (chan.isOperator(it->second))
@@ -132,12 +213,13 @@ void Server::joinExistingChannel(User &u, Channel &chan)
 	send(u.getFd(), listEnd.c_str(), listEnd.length(), 0);
 }
 
+//sortir d'un channel
 void Server::leaveChannel(User &u, string msg)
 {
 	std::istringstream	stream(msg);
 	string				token;
-	std::vector<string>	args;
 	int					in_word = false;
+	std::vector<string>	args;
 
 	// mettre ca dans fonction std::vector<string> getArgs(string msg)
 	if (msg == ":")
@@ -161,43 +243,44 @@ void Server::leaveChannel(User &u, string msg)
 			args[1] += " " + token;
 	}
 
+	std::string chan = args[0];
 	
 	string part_msg;
 	if (args.size() == 1)
 	{
-		part_msg = u.getID() + " PART " + args[0] + "\r\n";
+		part_msg = u.getID() + " PART " + chan + "\r\n";
 	}
 	else if (args.size() == 2)
 	{
-		part_msg = u.getID() + " PART " + args[0] + " :" + args[1] + "\r\n";
+		part_msg = u.getID() + " PART " + chan + " :" + args[1] + "\r\n";
 	}
 	cout << "to channel: " << part_msg << endl;
 
 	std::string reply = u.getID() + " PART " + msg + "\r\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
+	part_msg = u.getID() + " PART " + chan + "\r\n";
 
-	
-	sendToChannelExcept(args[0], part_msg, u);
+	_channels[chan].sendToChannel(part_msg);
 
-	_channels[args[0]].getUsers().erase(u.getNick());
+	_channels[chan].getUsers().erase(u.getNick());
 
 
-	if (_channels[args[0]].getUsers().size() <= 0)
+	if (_channels[chan].getUsers().size() <= 0)
 	{
-		_channels.erase(args[0]);
+		_channels.erase(chan);
 		return ;
 	}
 
-	std::vector<string>::iterator it = _channels[args[0]].getmoderatorName().begin();
-	while (_channels[args[0]].getmoderatorName().size() == 1 && it != _channels[args[0]].getmoderatorName().end())
+	std::vector<string>::iterator it = _channels[chan].getmoderatorName().begin();
+	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
 	{
 		if (*it == u.getNick())
 		{
-			_channels[args[0]].getmoderatorName().erase(it);
-			_channels[args[0]].getmoderatorName().push_back(_channels[args[0]].getUsers().begin()->first);
+			_channels[chan].getmoderatorName().erase(it);
+			_channels[chan].addModerator(_channels[chan].getUsers().begin()->first);
 
-			string opMsg = ":127.0.0.1 MODE " + args[0] + " +o " + _channels[args[0]].getUsers().begin()->second.getNick() + "\r\n";
-			sendToChannel(args[0], opMsg);
+			string opMsg = ":127.0.0.1 MODE " + chan + " +o " + _channels[chan].getUsers().begin()->second.getNick() + "\r\n";
+			_channels[chan].sendToChannel(opMsg);
 			break ;
 		}
 		it++;
@@ -258,6 +341,7 @@ bool Server::check_password(char *buf) //strncmp bad
 	return false;
 }
 
+//déconnecte un user du serveur
 void Server::disconnect_user(int client_i)
 {
 	char buf[100];
@@ -271,12 +355,25 @@ void Server::disconnect_user(int client_i)
 	cout << endl << "client send: " << buf << client_i << ":" << fds.size() << endl;
 }
 
+//parse user info...
 void Server::parse_user_info(int client_i, string parseUserInfo)
 {
+
 	if (parseUserInfo.substr(0, 4) == "NICK")
+	{
 		_users[client_i - 1].parseNickInfo(parseUserInfo);
-	if (parseUserInfo.substr(0, 4) == "USER")
+
+		for (size_t j = 0; j < _users.size() - 1; j++)
+		{
+			if (_users[j].getNick() ==_users[client_i - 1].getNick())
+				{ disconnect_user(client_i); throw std::exception() ; }
+		}
+	}
+
+
+	else if (parseUserInfo.substr(0, 4) == "USER")
 		_users[client_i - 1].parseUserInfo(parseUserInfo);
+
 
 	User *u = &_users[client_i - 1];
 	if (!u->isConnected() && !u->getNick().empty() && !u->getUser().empty())
@@ -302,28 +399,22 @@ void Server::createChannelMsg(User &u, string chan) const
 	send(u.getFd(), listend.c_str(), listend.length(), 0);
 }
 
-void Server::sendToChannel(string chan, string message)
-{
-	for (std::map<string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
-    {
-    	send(it->second.getFd(), message.c_str(), message.length(), 0);
-    }
-}
-
-void Server::sendToChannelExcept(string chan, string message, User &except)
-{
-	for (std::map<string, User>::iterator it = _channels[chan].getUsers().begin(); it != _channels[chan].getUsers().end(); it++)
-    {
-		if (it->second.getNick() != except.getNick())
-    		send(it->second.getFd(), message.c_str(), message.length(), 0);
-    }
-}
 
 User *Server::getUser(int fd)
 {
 	for (unsigned int i = 0; i < _users.size(); i++)
 	{
 		if (fd == _users[i].getFd())
+			return &_users[i];
+	}
+	return (NULL);
+}
+
+User *Server::getUser(string nick)
+{
+	for (unsigned int i = 0; i < _users.size(); i++)
+	{
+		if (nick == _users[i].getNick())
 			return &_users[i];
 	}
 	return (NULL);
@@ -374,6 +465,35 @@ void Server::connectClient(User *u)
 	send(u->getFd(), msg004.c_str(), msg004.length(), 0);
 }
 
+void Server::sendMessage(User &u , string message)
+{
+	size_t channelBegin;
+	size_t messageBegin;
+	string chan;
+	string msg;
+
+	channelBegin = message.find(' ', 0) + 1;
+	messageBegin = message.find(' ', channelBegin + 1) + 1;
+
+	chan = message.substr(channelBegin, messageBegin - channelBegin - 1);
+	// message = message.substr(messageBegin);
+	msg = u.getID() + " " + message + "\r\n";
+
+	if (chan.at(0) == '#' && channelExist(chan) && isUser(u.getNick(), chan))
+		_channels[chan].sendToChannelExcept(msg, u);
+	else
+	{
+		for (size_t i = 0; i < _users.size(); i++)
+		{
+			if (_users[i].getNick() == chan)
+				{send(_users[i].getFd(), msg.c_str(), msg.length(), 0); return;}
+    	}
+			msg = ":127.0.0.1 401 " + chan + " :" + chan + " No suck nick/channel\r\n";//to check <--
+			
+			send(u.getFd(), msg.c_str(), msg.length(), 0);/////////////////////////////////////////////
+	}
+}
+
 void Server::setPassword(string newPassword)
 {
 	_password = newPassword;
@@ -389,3 +509,170 @@ int Server::getSocket() const
 	return (fds[0].fd);
 }
 
+// AJOUT DE ALEX // 
+
+void Server::skipWhitespace(string &str) {
+    size_t pos = 0;
+    while (pos < str.length() && isspace(str[pos])) {
+        ++pos;
+    }
+    str.erase(0, pos);
+}
+
+bool Server::isUser(string user_to_kick, string channel_name)
+{
+	for (std::map<string, User>::iterator it = _channels[channel_name].getUsers().begin(); it != _channels[channel_name].getUsers().end(); it++)
+		if (it->second.getNick() == user_to_kick)
+			return true;
+	return false;
+}
+
+bool Server::userExist(string user_to_invite)
+{
+	for (std::vector<User>::iterator it = _users.begin(); it != _users.end(); it++)
+    {
+     	if (it->getNick() == user_to_invite)
+		{
+			cout << "le user existe" << endl;
+			return true;
+		}
+    }
+	return false;
+}
+
+bool Server::channelExist(string channel_name)
+{
+	for (std::map<string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++)
+    {
+    	if (it->second.getName() == channel_name)
+		{
+			cout << "le channel existe" << endl;
+			return true;
+		}	
+    }
+	return false;
+}
+
+void Server::kickChannels(User &u, string str)
+{
+	string channel_name;
+	string user_to_kick;
+	string reason_to_kick;
+	string msg461 = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
+
+	if (str.empty())
+	{
+		send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+		return ;
+	}
+	skipWhitespace(str);
+	if (str[0] != '#' && str[0] != '&' && str[0] != '+' && str[0] != '!' )
+	{
+		send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+		return ;
+	}
+	std::stringstream ss(str);
+    std::string word;
+
+    // Compte le nombre de mots
+    int wordCount = 0;
+    while (ss >> word) {
+        ++wordCount;
+    }
+    // Analyse le nombre de mots et agit en conséquence
+	if (wordCount < 2)
+		send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+	else
+	{
+ 		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> channel_name >> user_to_kick;
+		if (wordCount > 2) 
+		{
+			int x = 3;
+			string buff = "";
+			ss >> reason_to_kick;
+			while (x < wordCount)
+			{
+				ss >> buff;
+				reason_to_kick = reason_to_kick + " " + buff;
+				x++;
+			}
+		}
+		bool modo = _channels[channel_name].isOperator(u);
+		bool userChannel = isUser(user_to_kick, channel_name);
+		if (modo == true && userChannel == true)
+		{
+			string msg_kick_info = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
+			if (wordCount > 2)
+				msg_kick_info = user_to_kick + " has been kicked of the channel for the reason : " + reason_to_kick + "\r\n";
+			for (std::map<string, User>::iterator it = _channels[channel_name].getUsers().begin(); it != _channels[channel_name].getUsers().end(); it++)
+			{
+				send(it->second.getFd(), msg_kick_info.c_str(), msg_kick_info.length(), 0);
+			}
+			leaveChannel(*getUser(user_to_kick), "PART " + str);
+			_channels[channel_name].getUsers().erase(user_to_kick);
+		}
+			
+	}
+	cout << "channel name: " << channel_name << endl;
+	cout << "user to kick: " << user_to_kick << endl;
+	cout << "reason to kick: " << reason_to_kick << endl;
+
+	for (std::map<string, User>::iterator it = _channels[channel_name].getUsers().begin(); it != _channels[channel_name].getUsers().end(); it++)
+    {
+    	std::cout << "Nick: " << it->second.getNick() << std::endl;
+    }
+
+}
+
+
+void Server::inviteChannels(User &u, string str)
+{
+	string channel_name;
+	string user_to_invite;
+	string msg461 = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
+
+	std::stringstream ss(str);
+    std::string word;
+
+    // Compte le nombre de mots
+    int wordCount = 0;
+    while (ss >> word) {
+        ++wordCount;
+    }
+    // Analyse le nombre de mots et agit en conséquence
+	if (wordCount < 2)
+		send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+	else
+	{
+ 		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> user_to_invite >> channel_name;
+		if (channelExist(channel_name) == true && userExist(user_to_invite) == true)
+		{
+			string msg_invite = "127.0.0.1 341 " + channel_name + " " + user_to_invite + "\r\n";
+			_channels[channel_name].addToWhiteList(user_to_invite);
+			for (std::vector<User>::iterator it = _users.begin(); it != _users.end(); it++)
+			{
+				if (it->getNick() == user_to_invite)
+					send(it->getFd(), msg_invite.c_str(), msg_invite.length(), 0);
+			}
+		}
+	}
+
+	//string msg_invite = u.getNick() + " invite you to join the channel " + channel_name + "\r\n";
+
+	cout << "channel name: " << channel_name << endl;
+	cout << "user to invite: " << user_to_invite << endl;
+}
+
+// Ajouter test du modérateur car il peut y avoir plusieurs modérateur (call _channels[channel_name].isOperator(u)) -- OK
+// vérifier que le channel existe --  besoin de test sinon map fantome
+// corriger le compte des mots par le compte de mots avant :Raison valide car synthaxe = KICK #new sam :Raison valide -- ok
+// ajouter le message d'erreur (voir ligne 331) -- OK
+// fonction qui gère tous les messages et les restitues
+// développer la fonction invite = INVITE nick  #channel -> envoie un message au user si existe et l'ajoute à la list
+// TOPIC #channel :topic valide -> faire le setter de _topic dans channel
+// si TOPIC #channel -> efface le _topic dans le set à empty.
+// si /TOPIC -> affiche le _topic.

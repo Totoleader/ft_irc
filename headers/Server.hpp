@@ -33,6 +33,8 @@ public:
 	void joinExistingChannel(User &u, Channel &chan);
 	void joinChannel(User &u, std::pair<string, string> chan);
 	void connectClient(User *u);
+	void sendMessage(User &u , string message);
+	void changeMode(User &u , string message);
 
 	void new_client();
 	void new_client(int fd);
@@ -41,15 +43,23 @@ public:
 
 	//utils
 	void createChannelMsg(User &u, string chan) const;
-	void sendToChannel(string chan, string message);
-	void sendToChannelExcept(string chan, string message, User &except);
 	void getAndJoinChannels(User &u, string channels);
 
 	User	*getUser(int fd);
+	User	*getUser(string nick);
 
 	void 		setPassword(string newPassword);
 	const char	*getPassword()	const;
 	int			getSocket()		const;
+
+		//AJOUT DE ALEX // 
+	void kickChannels(User &u, string str);
+	void skipWhitespace(string &str);
+	bool isUser(string user_to_kick, string channel_name);
+	bool userExist(string user_to_invite);
+	bool channelExist(string channel_name);
+	void inviteChannels(User &u, string str);
+
 
 
 };
