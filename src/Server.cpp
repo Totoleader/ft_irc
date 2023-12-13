@@ -96,6 +96,8 @@ void Server::handle_client(int client_i)
 			inviteChannels(_users[i], command.substr(6)); //enleve la partie INVITE du message
 		else if (command.substr(0, 7) == "PRIVMSG")
 			sendMessage(_users[i], command);
+		else if (command.substr(0, 4) == "MODE")
+			changeMode(_users[i], command.substr(4));
 
 		else
 		{
@@ -113,6 +115,68 @@ void Server::handle_client(int client_i)
 
 		cout << endl << "client send: " << command.c_str() << endl;
 		_users[i].doneWithCommandGoToNextPlz(&trail);
+	}
+}
+
+void Server::changeMode(User &u, string str)
+{
+	string channel_name;
+	string mode;
+	string msg461 = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
+
+	std::stringstream ss(str);
+    std::string word;
+
+    // Compte le nombre de mots
+    int wordCount = 0;
+    while (ss >> word) {
+        ++wordCount;
+    }
+    // Analyse le nombre de mots et agit en conséquence
+	if (wordCount < 2)
+	{
+		// send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+		return ;
+	}
+	else
+	{
+ 		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> channel_name >> mode;
+		if (channelExist(channel_name) == true && _channels[channel_name].isOperator(u))
+		{
+			if (mode.find("+i"))
+			{
+				cout << "**Changing mode +i**" << endl;
+				_channels[channel_name].setInviteOnly(true);
+			}
+			else if (mode.find("-i"))
+			{
+				cout << "**Changing mode -i**" << endl;
+				_channels[channel_name].setInviteOnly(false);
+			}
+
+			if (mode.find("+t"))
+			{cout << "**Changing mode +t (not implemented)**" << endl;}
+			else if (mode.find("-t"))
+			{cout << "**Changing mode -t (not implemented)**" << endl;}
+
+			if (mode.find("+k"))
+			{cout << "**Changing mode +k (not implemented)**" << endl;}
+			else if (mode.find("-k"))
+			{cout << "**Changing mode -k (not implemented)**" << endl;}
+
+			if (mode.find("+o"))
+			{cout << "**Changing mode +o (not implemented)**" << endl;}
+			else if (mode.find("-o"))
+			{cout << "**Changing mode -o (not implemented)**" << endl;}
+
+			if (mode.find("+l"))
+			{cout << "**Changing mode +l (not implemented)**" << endl;}
+			else if (mode.find("-l"))
+			{cout << "**Changing mode -l (not implemented)**" << endl;}
+
+		}
 	}
 }
 
@@ -154,8 +218,8 @@ void Server::leaveChannel(User &u, string msg)
 {
 	std::istringstream	stream(msg);
 	string				token;
-	std::vector<string>	args;
 	int					in_word = false;
+	std::vector<string>	args;
 
 	// mettre ca dans fonction std::vector<string> getArgs(string msg)
 	if (msg == ":")
@@ -179,35 +243,36 @@ void Server::leaveChannel(User &u, string msg)
 			args[1] += " " + token;
 	}
 
+	std::string chan = args[0];
 	
 	string part_msg;
 	if (args.size() == 1)
 	{
-		part_msg = u.getID() + " PART " + args[0] + "\r\n";
+		part_msg = u.getID() + " PART " + chan + "\r\n";
 	}
 	else if (args.size() == 2)
 	{
-		part_msg = u.getID() + " PART " + args[0] + " :" + args[1] + "\r\n";
+		part_msg = u.getID() + " PART " + chan + " :" + args[1] + "\r\n";
 	}
 	cout << "to channel: " << part_msg << endl;
 
 	std::string reply = u.getID() + " PART " + msg + "\r\n";
 	send(u.getFd(), reply.c_str(), reply.length(), 0);
+	part_msg = u.getID() + " PART " + chan + "\r\n";
 
-	string part_msg = u.getID() + " PART " + chan + "\r\n";
 	_channels[chan].sendToChannel(part_msg);
 
 	_channels[chan].getUsers().erase(u.getNick());
 
 
-	if (_channels[args[0]].getUsers().size() <= 0)
+	if (_channels[chan].getUsers().size() <= 0)
 	{
-		_channels.erase(args[0]);
+		_channels.erase(chan);
 		return ;
 	}
 
-	std::vector<string>::iterator it = _channels[args[0]].getmoderatorName().begin();
-	while (_channels[args[0]].getmoderatorName().size() == 1 && it != _channels[args[0]].getmoderatorName().end())
+	std::vector<string>::iterator it = _channels[chan].getmoderatorName().begin();
+	while (_channels[chan].getmoderatorName().size() == 1 && it != _channels[chan].getmoderatorName().end())
 	{
 		if (*it == u.getNick())
 		{
@@ -340,6 +405,16 @@ User *Server::getUser(int fd)
 	for (unsigned int i = 0; i < _users.size(); i++)
 	{
 		if (fd == _users[i].getFd())
+			return &_users[i];
+	}
+	return (NULL);
+}
+
+User *Server::getUser(string nick)
+{
+	for (unsigned int i = 0; i < _users.size(); i++)
+	{
+		if (nick == _users[i].getNick())
 			return &_users[i];
 	}
 	return (NULL);
@@ -535,6 +610,7 @@ void Server::kickChannels(User &u, string str)
 			{
 				send(it->second.getFd(), msg_kick_info.c_str(), msg_kick_info.length(), 0);
 			}
+			leaveChannel(*getUser(user_to_kick), "PART " + str);
 			_channels[channel_name].getUsers().erase(user_to_kick);
 		}
 			

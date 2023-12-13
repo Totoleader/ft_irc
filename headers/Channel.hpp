@@ -6,7 +6,7 @@
 /*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/11 15:09:19 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/13 12:58:13 by macote           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ public:
 	string	getName();
 	bool isOperator(User &u);
 	bool isInviteOnly();
+	void setInviteOnly(bool state);
 	bool isWhitelisted(User &u);
 	string getPassword();
 	void	addToWhiteList(string newUser);

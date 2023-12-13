@@ -80,6 +80,11 @@ bool Channel::isOperator(User &u)
 	return false;
 }
 
+void Channel::setInviteOnly(bool state)
+{
+	_isInviteOnly = state;
+}
+
 bool Channel::isInviteOnly()
 {
 	return (_isInviteOnly);
