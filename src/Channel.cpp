@@ -60,6 +60,17 @@ string Channel::getName()
 	return _name;
 }
 
+string Channel::getTopic()
+{
+	return _topic;
+}
+
+void	Channel::setTopic(string str)
+{
+	_topic = str;
+}
+
+
 std::map <string, User> & Channel::getUsers()
 {
 	return _channelUsers;

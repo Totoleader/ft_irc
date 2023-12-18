@@ -5,24 +5,28 @@
 #include "Irc.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
+#include "Messages.hpp"
 
 
 class Channel;
+class Messages;
 
 class Server
 {
 private:
 	std::vector<struct pollfd>		fds;
 	std::vector<User>				_users;
-	std::map<string, Channel>	_channels;
-	string						_password;
+	std::map<string, Channel>		_channels;
+	std::string						_port;
+	std::string						_password;
+	std::string						_host;
 	addrinfo						*_servinfo;
 
 	bool check_password(char *buf);
 
 public:
 	Server();
-	Server(string password);
+	Server(string port, string password);
 	~Server();
 	
 	void init();
@@ -53,15 +57,18 @@ public:
 	int			getSocket()		const;
 
 		//AJOUT DE ALEX // 
+	const char	*getPortNumber()	const;
+	string	getPort(); 
+	string	getHost(); 
 	void kickChannels(User &u, string str);
 	void skipWhitespace(string &str);
 	bool isUser(string user_to_kick, string channel_name);
 	bool userExist(string user_to_invite);
 	bool channelExist(string channel_name);
 	void inviteChannels(User &u, string str);
-
-
-
+	void setTopic(User &u, string str);
+	void showTopic(User &u, string str);
+	string printMsgError(string str);
 };
 
 #endif

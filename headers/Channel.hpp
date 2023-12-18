@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: macote <macote@student.42.fr>              +#+  +:+       +#+        */
+/*   By: abrochie <abrochie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:42:50 by macote            #+#    #+#             */
-/*   Updated: 2023/12/13 12:58:13 by macote           ###   ########.fr       */
+/*   Updated: 2023/12/16 08:07:29 by abrochie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ public:
 	//setOperator(...);
 	//setUserLimit(...);
 	string	getName();
+	string	getTopic();
+	void	setTopic(string str);
 	bool isOperator(User &u);
 	bool isInviteOnly();
 	void setInviteOnly(bool state);

@@ -1,17 +1,34 @@
 #include "Server.hpp"
 #include "Libs.hpp"
+#include "Messages.hpp"
 
 Server::Server():_password("")
 {
 }
 
-Server::Server(string password):_password(password)
+Server::Server(std::string port, std::string password): _port(port), _password(password), _host("127.0.0.1")
 {
 }
 
 Server::~Server()
 {
 	freeaddrinfo(_servinfo);
+}
+
+
+const char* Server::getPortNumber() const // AJOUT : obtention du port en const char*
+{
+	return (_port.c_str());
+}
+
+std::string Server::getPort() // AJOUT : obtention du port en str
+{
+	return _port;
+}
+
+std::string Server::getHost() // AJOUT : obtention du host
+{
+	return _host;
 }
 
 // Initialisation du serveur au début du programme
@@ -25,14 +42,14 @@ void Server::init()
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(NULL, "6667", &hints, &_servinfo);
+	getaddrinfo(NULL, getPortNumber(), &hints, &_servinfo); //AJOUT : récupération du port avec la fonction getPort()
 
 	servSocket = socket(_servinfo->ai_family, _servinfo->ai_socktype, _servinfo->ai_protocol);
 	new_client(servSocket);
 
 	if (bind(fds[0].fd, _servinfo->ai_addr, _servinfo->ai_addrlen) != 0)
 	{
-		std::cerr << "Bind failed." << endl;
+		std::cerr << printMsgError("ERR_BIND_FAILED") << endl;
 		exit (1);
 	}
 
@@ -94,6 +111,10 @@ void Server::handle_client(int client_i)
 			kickChannels(_users[i], command.substr(4)); //enleve la partie KICK du message
 		else if (command.substr(0, 6) == "INVITE")
 			inviteChannels(_users[i], command.substr(6)); //enleve la partie INVITE du message
+		else if (command.substr(0, 5) == "topic")
+			showTopic(_users[i], command.substr(5));
+		else if (command.substr(0, 5) == "TOPIC")
+			setTopic(_users[i], command.substr(5));
 		else if (command.substr(0, 7) == "PRIVMSG")
 			sendMessage(_users[i], command);
 		else if (command.substr(0, 4) == "MODE")
@@ -599,9 +620,7 @@ void Server::kickChannels(User &u, string str)
 				x++;
 			}
 		}
-		bool modo = _channels[channel_name].isOperator(u);
-		bool userChannel = isUser(user_to_kick, channel_name);
-		if (modo == true && userChannel == true)
+		if (_channels[channel_name].isOperator(u) == true && isUser(user_to_kick, channel_name) == true && channelExist(channel_name) == true)
 		{
 			string msg_kick_info = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
 			if (wordCount > 2)
@@ -631,7 +650,6 @@ void Server::inviteChannels(User &u, string str)
 {
 	string channel_name;
 	string user_to_invite;
-	string msg461 = ":127.0.0.1 461 KICK :Not enough parameters\r\n";
 
 	std::stringstream ss(str);
     std::string word;
@@ -643,7 +661,7 @@ void Server::inviteChannels(User &u, string str)
     }
     // Analyse le nombre de mots et agit en conséquence
 	if (wordCount < 2)
-		send(u.getFd(), msg461.c_str(), msg461.length(), 0);
+		send(u.getFd(), printMsgError("461").c_str(), printMsgError("461").length(), 0);
 	else
 	{
  		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
@@ -667,12 +685,71 @@ void Server::inviteChannels(User &u, string str)
 	cout << "user to invite: " << user_to_invite << endl;
 }
 
-// Ajouter test du modérateur car il peut y avoir plusieurs modérateur (call _channels[channel_name].isOperator(u)) -- OK
-// vérifier que le channel existe --  besoin de test sinon map fantome
-// corriger le compte des mots par le compte de mots avant :Raison valide car synthaxe = KICK #new sam :Raison valide -- ok
-// ajouter le message d'erreur (voir ligne 331) -- OK
+void	Server::showTopic(User &u, string str)
+{
+	(void) u;
+	(void) str;
+	cout << "the topic is...." << endl;
+}
+
+void	Server::setTopic(User &u, string str)
+{
+	string channel_name;
+	string topic_value;
+
+	std::stringstream ss(str);
+    std::string word;
+
+    // Compte le nombre de mots
+    int wordCount = 0;
+    while (ss >> word) {
+        ++wordCount;
+    }
+    // Analyse le nombre de mots et agit en conséquence
+	if (wordCount < 1)
+		send(u.getFd(), printMsgError("461").c_str(), printMsgError("461").length(), 0);
+	else if (wordCount < 2)
+	{
+		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> channel_name;
+		if (channelExist(channel_name) == true)
+			_channels[channel_name].setTopic("");
+	}
+	else
+	{
+ 		ss.clear(); // Réinitialise le flux pour le parcourir à nouveau
+        ss.seekg(0, std::ios::beg);
+		ss >> channel_name >> topic_value;
+		if (wordCount > 2) 
+		{
+			int x = 2;
+			string buff = "";
+			while (x < wordCount)
+			{
+				ss >> buff;
+				topic_value = topic_value + " " + buff;
+				x++;
+			}
+		}
+		if (channelExist(channel_name) == true)
+			_channels[channel_name].setTopic(topic_value);
+	}
+	cout << channel_name << endl;
+	cout << topic_value << endl;
+}
+
+string Server::printMsgError(string str)
+{
+	Messages message;
+
+	return (message.msgError(str));
+}
+
 // fonction qui gère tous les messages et les restitues
-// développer la fonction invite = INVITE nick  #channel -> envoie un message au user si existe et l'ajoute à la list
 // TOPIC #channel :topic valide -> faire le setter de _topic dans channel
 // si TOPIC #channel -> efface le _topic dans le set à empty.
 // si /TOPIC -> affiche le _topic.
+
+// Revoir les messages d'erreurs
+// Revoir les messages de succès
